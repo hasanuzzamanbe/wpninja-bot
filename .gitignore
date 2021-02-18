@@ -1,0 +1,7 @@
+package-lock.json
+.env
+node_modules
+svn
+svn.php
+*.zip
+.DS_Store
