@@ -35,7 +35,7 @@ class NinjaBotInit {
 			};
 			bot.sendMessage(
 				msg.chat.id,
-				'Select from bellow or \n Type "/dl plugin-slug"',
+				'Type "/dl your-plugin-slug" \nOr select from bellow',
 				opts
 			);
 		});
@@ -57,7 +57,7 @@ class NinjaBotInit {
 			};
 			bot.sendMessage(
 				msg.chat.id,
-				'Select from bellow or \n Type "/ac plugin-slug"',
+				'Type "/ac your-plugin-slug" \nOr select from bellow',
 				opts
 			);
 		});
@@ -80,7 +80,7 @@ class NinjaBotInit {
 			};
 			bot.sendMessage(
 				msg.chat.id,
-				'Select from bellow or \n Type "/st plugin-slug"',
+				'Type "/st your-plugin-slug" \nOr select from bellow',
 				opts
 			);
 		});
@@ -92,13 +92,21 @@ class NinjaBotInit {
 		 */
 		bot.onText(/\/dl (.+)/, async function(msg, match) {
 			const chatId = msg.chat.id;
-			const result = await BotInstance.downloads(msg, match);
-			let rep = 'Today (';
-			for (let prop in result) {
-				rep += prop + ')\n';
-				rep += 'Downloads:' + result[prop];
+			try {
+				const result = await BotInstance.downloads(msg, match);
+				let rep = 'Today (';
+				for (let prop in result) {
+					rep += prop + ')\n';
+					rep += 'Downloads:    ' + result[prop];
+				}
+			bot.sendMessage(chatId, `===[${match[1]}]===\n\n` + rep);
+			}catch (err) {
+				bot.sendMessage(
+					chatId,
+					'Oops! Please try another.'
+				);
 			}
-			bot.sendMessage(chatId, '===Result===\n' + rep);
+
 		});
 
 		/*
@@ -106,8 +114,16 @@ class NinjaBotInit {
 		 */
 		bot.onText(/\/ac (.+)/, async function(msg, match) {
 			const chatId = msg.chat.id;
-			const result = await BotInstance.activeChart(msg, match);
-			console.log(result);
+			try {
+				const result = await BotInstance.activeChart(msg, match);
+				console.log(result);
+			} catch (err) {
+				bot.sendMessage(
+					chatId,
+					'Oops! Please try another.'
+				);
+			}
+
 		});
 
 		/*
@@ -115,8 +131,59 @@ class NinjaBotInit {
 		 */
 		bot.onText(/\/st (.+)/, async function(msg, match) {
 			const chatId = msg.chat.id;
-			const result = await BotInstance.status(msg, match);
-			console.log(result);
+			try {
+				const result = await BotInstance.status(msg, match);
+				const {
+					slug,
+					version,
+					author,
+					requires,
+					requires_php,
+					rating,
+					ratings,
+					support_threads,
+					support_threads_resolved,
+					downloaded,
+					tested,
+					last_updated
+				  } = result;
+
+				  let str = author.split('">')[1];
+				  let authorName = str ? str.slice(0, -4) : str;
+
+				  var template =
+				  `====[ ${slug} ]====
+				  Version : ${version}
+				  Author : ${authorName}
+				  Requires WP : ${requires}
+				  Requires php : ${requires_php}
+				  Rating : ${rating}
+				  Support threads : ${support_threads}
+				  Support threads resolved : ${support_threads_resolved}
+				  Downloaded : ${downloaded}
+				  Tested : ${tested}
+				  Last Updated : ${last_updated}`;
+
+				bot.sendMessage(
+					chatId,
+					template
+				);
+
+				const recentDownload = await BotInstance.downloads('', ['', slug]);
+				let rep = 'Today (';
+				for (let prop in recentDownload) {
+					rep += prop + ') 👇\n';
+					rep += 'Downloads:                  ' + recentDownload[prop];
+				}
+				bot.sendMessage(chatId, rep);
+
+
+			} catch (err) {
+				bot.sendMessage(
+					chatId,
+					'Oops! Please try another.'
+				);
+			}
 		});
 
 		/*
@@ -125,7 +192,6 @@ class NinjaBotInit {
 		bot.onText(/\/logo (.+)/, (msg, match) => {
 			var slug = this.slugiFy(match[1]);
 			var url = `https://ps.w.org/${slug}/assets/icon-256x256.png`;
-			console.log(url);
 			bot.sendPhoto(msg.chat.id, url);
 		});
 
@@ -135,7 +201,6 @@ class NinjaBotInit {
 		bot.onText(/\/authlab/, (msg, match) => {
 			var url =
 				'https://authlab.io/wp-content/uploads/2016/06/authlab_logo-1.png';
-			console.log(url);
 			bot.sendPhoto(
 				msg.chat.id,
 				url,
@@ -159,21 +224,19 @@ class NinjaBotInit {
 				})
 			};
 			bot.sendMessage(
-				msg.chat.id,
-				'Type /st {plugin-slug} [for plugin all status]\n /ac {plugin-slug} [for plugin active growth]\n /dl {plugin-slug} [for plugin download info]\n Get some shortcuts: /active, /download, /status,\n /authlab, /love, /help, /start \n There are some examples!',
-				opts
+				msg.chat.id, "Available commands: \n/status \n/download \n/active \n/authlab\n/love \n/help\n/start\n/st your-plugin-slug\nThere are some examples!", opts
 			);
 		});
 
 		bot.onText(/\/start/, (msg) => {
 			const opts = {
 				reply_markup: JSON.stringify({
-					keyboard: [['/help']]
+					keyboard: [['/status', '/download'], ['/active', '/help']]
 				})
 			};
 			bot.sendMessage(
 				msg.chat.id,
-				`Hi ${msg.from.first_name} 😄 \nWelcome to WPNinja Bot😊 You can check your wp.org plugin-status By asking me on text. 😎 Type or press /help for more query.`,
+				'Welcome to WPNinja Bot😊 You can check your wp.org plugin-status By asking me on text. 😎 Type or press /help for more query.',
 				opts
 			);
 		});
@@ -192,20 +255,11 @@ class NinjaBotInit {
 			bot.sendMessage(msg.chat.id, 'Do you love me?', opts);
 		});
 
-		bot.on('callback_query', function onCallbackQuery(callbackQuery) {
-			const action = callbackQuery.data;
-			const msg = callbackQuery.message;
-			const opts = {
-				chat_id: msg.chat.id,
-				message_id: msg.message_id
-			};
-			let text;
 
-			if (action === 'edit') {
-				text = 'Edited Text';
-			}
-			bot.sendMessage(text, 'hello', opts);
+		bot.onText(/\/copyright/, function(msg) {
+			bot.sendMessage(msg.chat.id, '===Developer===\n\nHasanuzzaman 😁\nVisit: www.hasanuzzaman.com\nText: @shamim0902');
 		});
+
 	}
 }
 

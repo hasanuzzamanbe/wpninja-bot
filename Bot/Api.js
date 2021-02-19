@@ -9,9 +9,15 @@ class Api {
         try {
             const api = `${this.endpoint}downloads.php?slug=${match[1]}&limit=1`;
             let sendMessage = await fetch(api)
-            return await sendMessage.json()
-        } catch(err) {
-            console.error(err)
+            if (sendMessage.status === 200) {
+                return await sendMessage.json()
+            }
+            return {
+                status: sendMessage.status,
+                statusText: sendMessage.statusText
+            }
+        } catch (err){
+            return err;
         }
     }
 
@@ -19,9 +25,15 @@ class Api {
         try {
             var api = `${this.endpoint}active-installs.php?slug=${match[1]}&limit=70`;
             let sendMessage = await fetch(api)
-            return await sendMessage.json()
-        } catch {
-            console.error(err)
+            if (sendMessage.status === 200) {
+                return await sendMessage.json()
+            }
+            return {
+                status: sendMessage.status,
+                statusText: sendMessage.statusText
+            }
+        } catch (err){
+            return err;
         }
     }
 
@@ -30,9 +42,15 @@ class Api {
             var api = `${this.endpoint2}${match[1]}.json`;
             console.log(api)
             let sendMessage = await fetch(api)
-            return await sendMessage.json()
-        } catch {
-            console.error(err)
+            if (sendMessage.status === 200) {
+                return await sendMessage.json()
+            }
+            return {
+                status: sendMessage.status,
+                statusText: sendMessage.statusText
+            }
+        } catch (err){
+            return err;
         }
     }
 
