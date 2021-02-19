@@ -29,7 +29,8 @@ class NinjaBotInit {
 							'/dl ninja-charts'
 						],
 						['/dl ninja-job-board', '/dl wp-social-reviews'],
-						['/dl fluent-smtp', '/help']
+						['/dl fluent-smtp', '/help'],
+						['/status', '/active']
 					]
 				})
 			};
@@ -51,7 +52,8 @@ class NinjaBotInit {
 							'/ac ninja-charts'
 						],
 						['/ac ninja-job-board', '/ac wp-social-reviews'],
-						['/ac fluent-smtp', '/help']
+						['/ac fluent-smtp', '/help'],
+						['/status', '/download']
 					]
 				})
 			};
@@ -74,7 +76,8 @@ class NinjaBotInit {
 							'/st ninja-charts'
 						],
 						['/st ninja-job-board', '/st wp-social-reviews'],
-						['/st fluent-smtp', '/help']
+						['/st fluent-smtp', '/help'],
+						['/active', '/download']
 					]
 				})
 			};
@@ -140,11 +143,11 @@ class NinjaBotInit {
 					requires,
 					requires_php,
 					rating,
-					ratings,
 					support_threads,
 					support_threads_resolved,
 					downloaded,
 					tested,
+					added,
 					last_updated
 				  } = result;
 
@@ -155,6 +158,7 @@ class NinjaBotInit {
 				  `====[ ${slug} ]====
 				  Version : ${version}
 				  Author : ${authorName}
+				  Birthday 🎂: ${added}
 				  Requires WP : ${requires}
 				  Requires php : ${requires_php}
 				  Rating : ${rating}
@@ -218,8 +222,14 @@ class NinjaBotInit {
 			const opts = {
 				reply_markup: JSON.stringify({
 					keyboard: [
-						['/st fluentform', '/dl fluentform'],
-						['/ac fluentform', '/help']
+						['/status', '/download', '/active'],
+						[
+							'/st ninja-tables',
+							'/st fluent-crm',
+							'/st fluent-form'
+						],
+						['/authlab', '/love', '/copyright'],
+
 					]
 				})
 			};
@@ -231,7 +241,11 @@ class NinjaBotInit {
 		bot.onText(/\/start/, (msg) => {
 			const opts = {
 				reply_markup: JSON.stringify({
-					keyboard: [['/status', '/download'], ['/active', '/help']]
+					keyboard: [
+						['/status', '/download'],
+						['/active', '/help'],
+						['/notify', '/copyright']
+					]
 				})
 			};
 			bot.sendMessage(
