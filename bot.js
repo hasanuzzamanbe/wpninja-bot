@@ -6,18 +6,22 @@ var bot = new TelegramBot(process.env.TOKEN, opt);
 bot.on('polling_error', console.log);
 const Bot = require('./Bot/Api');
 const BotInstance = new Bot();
+const User = require('./Authlab/User');
 
 // console.log('hi cron');
-// const schedule = require('node-schedule');
+const schedule = require('node-schedule');
 
-// const job = schedule.scheduleJob('1 26 10 * * *', function(){
-//   console.log('The answer to life, the universe, and everything!');
-//   bot.on('', message => {
-// 	bot.sendMessage(message.chat.id,
-// 		'/st ninja-tables'
-// 	  );
-//   });
-// });
+const job = schedule.scheduleJob('1 07 18 * * *', function(){
+  console.log('The answer to life, the universe, and everything!');
+  [643219013, 635152218].forEach(id => {
+
+	bot.sendMessage(id,
+		'/st ninja-tables'
+	);
+
+  });
+
+});
 
 class NinjaBotInit {
 	constructor() {
@@ -34,12 +38,12 @@ class NinjaBotInit {
 			const opts = {
 				reply_markup: JSON.stringify({
 					keyboard: [
-						['/dl fluentform', '/status'],
-						['/dl ninja-tables', '/active'],
-						['/dl fluent-smtp', '/help'],
-						['/dl fluent-crm', '/dl wp-social-reviews'],
+						['/dl fluentform', '🏠 home'],
+						['/dl ninja-tables', '/status'],
+						['/dl fluent-smtp', '/active'],
+						['/dl fluent-crm', '/help'],
 						['/dl ninja-charts', '/dl wp-payment-form'],
-						['/dl ninja-job-board']
+						['/dl ninja-job-board', '/dl wp-social-reviews']
 					]
 				})
 			};
@@ -54,12 +58,12 @@ class NinjaBotInit {
 			const opts = {
 				reply_markup: JSON.stringify({
 					keyboard: [
-						['/ac fluentform', '/status'],
-						['/ac ninja-tables', '/download'],
-						['/ac fluent-smtp', '/help'],
-						['/ac fluent-crm', '/ac wp-social-reviews'],
+						['/ac fluentform', '🏠 home'],
+						['/ac ninja-tables', '/status'],
+						['/ac fluent-smtp', '/download'],
+						['/ac fluent-crm', '/help'],
 						['/ac ninja-charts', '/ac wp-payment-form'],
-						['/ac ninja-job-board']
+						['/ac ninja-job-board', '/ac wp-social-reviews']
 					]
 				})
 			};
@@ -75,12 +79,12 @@ class NinjaBotInit {
 			const opts = {
 				reply_markup: JSON.stringify({
 					keyboard: [
-						['/st fluentform', '/active'],
+						['/st fluentform', '🏠 home'],
 						['/st ninja-tables', '/download'],
-						['/st fluent-smtp', '/help'],
-						['/st fluent-crm', '/st wp-social-reviews'],
+						['/st fluent-smtp', '/active'],
+						['/st fluent-crm', '/help'],
 						['/st ninja-charts', '/st wp-payment-form'],
-						['/st ninja-job-board']
+						['/st ninja-job-board', '/st wp-social-reviews']
 					]
 				})
 			};
@@ -216,7 +220,7 @@ class NinjaBotInit {
 			const opts = {
 				reply_markup: JSON.stringify({
 					keyboard: [
-						['/status', '/download', '/active'],
+						['/status', '/download', '🏠 home'],
 						[
 							'/st ninja-tables',
 							'/st fluent-crm',
@@ -244,10 +248,48 @@ class NinjaBotInit {
 			};
 			bot.sendMessage(
 				msg.chat.id,
-				'Welcome to WPNinja Bot😊 You can check your wp.org plugin-status By asking me on text. 😎 Type or press /help for more query.',
+				`Hi ${msg.chat.first_name} 😁\nWelcome to WPNinja Bot😊 You can check your wp.org plugin-status By asking me on text. 😎 Type or press /help for more query.`,
 				opts
 			);
 		});
+
+		bot.onText(/\🏠 home/, (msg) => {
+			const opts = {
+				reply_markup: JSON.stringify({
+					keyboard: [
+						['/status', '/download'],
+						['/active', '/help'],
+						['/notify', '/copyright'],
+						[{ text: 'hi', callback_data: 'explore_user' }]
+					]
+				})
+			};
+			bot.sendMessage(
+				msg.chat.id,
+				`Hey ${msg.chat.first_name} 😁\nYou can check your wp.org plugin-status By asking me on text. 😎 Type or press /help for more query.`,
+				opts
+			);
+		});
+
+		bot.onText(/\hi/, (msg) => {
+			console.log('called');
+			const Users = new User(msg.chat);
+			var txt = Users.getMessage();
+			console.log(txt)
+			bot.sendMessage(
+				msg.chat.id,
+				txt
+			);
+		});
+
+		bot.onText(/\/notify/, (msg) => {
+			console.log(msg)
+			bot.sendMessage(
+				msg.chat.id,
+				'😎'
+			);
+		});
+
 
 		// Matches /love
 		bot.onText(/\/love/, function(msg) {
