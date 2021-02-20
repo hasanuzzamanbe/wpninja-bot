@@ -7,6 +7,18 @@ bot.on('polling_error', console.log);
 const Bot = require('./Bot/Api');
 const BotInstance = new Bot();
 
+// console.log('hi cron');
+// const schedule = require('node-schedule');
+
+// const job = schedule.scheduleJob('1 26 10 * * *', function(){
+//   console.log('The answer to life, the universe, and everything!');
+//   bot.on('', message => {
+// 	bot.sendMessage(message.chat.id,
+// 		'/st ninja-tables'
+// 	  );
+//   });
+// });
+
 class NinjaBotInit {
 	constructor() {
 		this.buttonSuggestions();
@@ -22,15 +34,12 @@ class NinjaBotInit {
 			const opts = {
 				reply_markup: JSON.stringify({
 					keyboard: [
-						['/dl fluentform', '/dl wp-payment-form'],
-						[
-							'/dl ninja-tables',
-							'/dl fluent-crm',
-							'/dl ninja-charts'
-						],
-						['/dl ninja-job-board', '/dl wp-social-reviews'],
+						['/dl fluentform', '/status'],
+						['/dl ninja-tables', '/active'],
 						['/dl fluent-smtp', '/help'],
-						['/status', '/active']
+						['/dl fluent-crm', '/dl wp-social-reviews'],
+						['/dl ninja-charts', '/dl wp-payment-form'],
+						['/dl ninja-job-board']
 					]
 				})
 			};
@@ -45,15 +54,12 @@ class NinjaBotInit {
 			const opts = {
 				reply_markup: JSON.stringify({
 					keyboard: [
-						['/ac fluentform', '/ac wp-payment-form'],
-						[
-							'/ac ninja-tables',
-							'/ac fluent-crm',
-							'/ac ninja-charts'
-						],
-						['/ac ninja-job-board', '/ac wp-social-reviews'],
+						['/ac fluentform', '/status'],
+						['/ac ninja-tables', '/download'],
 						['/ac fluent-smtp', '/help'],
-						['/status', '/download']
+						['/ac fluent-crm', '/ac wp-social-reviews'],
+						['/ac ninja-charts', '/ac wp-payment-form'],
+						['/ac ninja-job-board']
 					]
 				})
 			};
@@ -69,15 +75,12 @@ class NinjaBotInit {
 			const opts = {
 				reply_markup: JSON.stringify({
 					keyboard: [
-						['/st fluentform', '/st wp-payment-form'],
-						[
-							'/st ninja-tables',
-							'/st fluent-crm',
-							'/st ninja-charts'
-						],
-						['/st ninja-job-board', '/st wp-social-reviews'],
+						['/st fluentform', '/active'],
+						['/st ninja-tables', '/download'],
 						['/st fluent-smtp', '/help'],
-						['/active', '/download']
+						['/st fluent-crm', '/st wp-social-reviews'],
+						['/st ninja-charts', '/st wp-payment-form'],
+						['/st ninja-job-board']
 					]
 				})
 			};
@@ -158,10 +161,10 @@ class NinjaBotInit {
 				  `====[ ${slug} ]====
 				  Version : ${version}
 				  Author : ${authorName}
-				  Birthday 🎂: ${added}
 				  Requires WP : ${requires}
 				  Requires php : ${requires_php}
-				  Rating : ${rating}
+				  Rating : ${rating},
+				  Birthday 🎂: ${added}
 				  Support threads : ${support_threads}
 				  Support threads resolved : ${support_threads_resolved}
 				  Downloaded : ${downloaded}
@@ -191,15 +194,6 @@ class NinjaBotInit {
 		});
 
 		/*
-		 * logo query
-		 */
-		bot.onText(/\/logo (.+)/, (msg, match) => {
-			var slug = this.slugiFy(match[1]);
-			var url = `https://ps.w.org/${slug}/assets/icon-256x256.png`;
-			bot.sendPhoto(msg.chat.id, url);
-		});
-
-		/*
 		 * authlab query
 		 */
 		bot.onText(/\/authlab/, (msg, match) => {
@@ -210,7 +204,7 @@ class NinjaBotInit {
 				url,
 				{
 					caption:
-						'Where a band of geeks and nerds actualize your business ideas'
+						'www.authlab.io\nWhere a band of geeks and nerds actualize your business ideas'
 				},
 				{ parse_mode: 'pre' }
 			);
