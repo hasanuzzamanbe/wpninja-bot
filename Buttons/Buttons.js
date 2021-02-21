@@ -16,7 +16,7 @@ class Buttons {
                     ]
                 })
             },
-            msg: "Type '/st your-plugin-slug'\nOr select from bellow"
+            msg: "Type '/st your-plugin-slug'\nOr select from bellow menu 👇"
         };
         return opts;
     }
@@ -35,7 +35,7 @@ class Buttons {
                     ]
                 })
             },
-            msg: "Type '/dl your-plugin-slug'\nOr select from bellow menu"
+            msg: "Type '/dl your-plugin-slug'\nOr select from bellow menu 👇"
         };
         return opts;
     }
@@ -53,7 +53,7 @@ class Buttons {
                     ]
                 })
             },
-            msg: "Type '/ac your-plugin-slug'\nOr select from bellow menu"
+            msg: "Type '/ac your-plugin-slug'\nOr select from bellow menu 👇"
         };
         return opts;
     }
@@ -68,11 +68,51 @@ class Buttons {
 							'/st fluent-crm',
 							'/st fluent-form'
 						],
-						['/authlab', '/love', '/copyright']
+						['/authlab', '/copyright']
 					]
                 })
             },
-            msg: `Don't worry ${this.user.first_name} 😊\nI am here to help you. Please select from bellow menu.`
+            msg: `Don't worry ${this.user.first_name} 😊\nI am here to help you.\nPlease select from bellow menu 👇`
+        };
+        return opts;
+    }
+
+    notifyOptions() {
+        var opts = {
+            markup: {
+                reply_markup: JSON.stringify({
+                    keyboard: [
+						['/home 🏠'],
+						['/alert fluentform', '/unsubscribe'],
+                        ['/alert ninja-tables', '/subscriptions'],
+                        ['/alert fluent-smtp', '/help'],
+                        ['/alert fluent-crm', '/fluentforms-pdf'],
+                        ['/alert ninja-charts', '/alert wp-payment-form'],
+                        ['/alert ninja-job-board', '/alert wp-social-reviews']
+					]
+                })
+            },
+            msg: `Select from the menu to get notification everyday about ManageNinja's plugin. Or type\n/alert plugin-slug\nto set notification for specific plugin.\nYou can subscribe multiple plugins.`
+        };
+        return opts;
+    }
+
+    startsOptions() {
+        var opts = {
+            markup: {
+                reply_markup: JSON.stringify({
+					inline_keyboard: [
+						[	{ text: '🧐 Status', callback_data: 'status_check' },
+							{ text: 'Active', callback_data: 'active_check' }
+						],
+						[	{ text: '⬇️ Downloads', callback_data: 'download_check' },
+							{ text: '🆘 Help', callback_data: 'get_help' }
+						],
+						[{ text: '🔔 Set Notifications', callback_data: 'get_notify' }]
+					]
+				})
+            },
+            msg: `Hey ${this.user.first_name} 😁\nGreeting from @wpninja_bot\nYou can check your wp.org plugin-status By asking me on text. 😎 Type or press /help for more query.`
         };
         return opts;
     }

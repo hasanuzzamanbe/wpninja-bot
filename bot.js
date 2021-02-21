@@ -4,14 +4,13 @@ var TelegramBot = require('node-telegram-bot-api');
 var opt = { polling: true };
 var bot = new TelegramBot(process.env.TOKEN, opt);
 bot.on('polling_error', console.log);
+
 const Bot = require('./Bot/Api');
-const WPApiGet = new Bot();
 const Chat = require('./Chat/Chat');
-
 const Buttons = require('./Buttons/Buttons')
-// console.log('hi cron');
 const schedule = require('node-schedule');
-
+const WPApiGet = new Bot();
+var firebase = require('firebase');
 
 class NinjaBotInit {
 	constructor() {
@@ -20,7 +19,6 @@ class NinjaBotInit {
 		this.otherActions();
 		this.chatHandler();
 		this.subscribe();
-
 	}
 
 	static slugiFy(str) {
@@ -62,6 +60,8 @@ class NinjaBotInit {
 				docs = Button.activeOptions()
 			} else if (res.data === "get_help") {
 				docs = Button.helpOptions()
+			} else if (res.data === "get_notify") {
+				docs = Button.notifyOptions()
 			}
 
 			if (docs) {
@@ -169,19 +169,24 @@ class NinjaBotInit {
 	chatHandler() {
 		bot.on('message', (msg) => {
 			let isCommand = msg.text.indexOf('/') > -1;
-
 			if (!isCommand) {
 				let hi = 'hi';
 				let bye = 'bye';
 				if (msg.text.toString().toLowerCase().indexOf(hi) === 0) {
-					bot.sendMessage(msg.chat.id, `Hello ${msg.chat.first_name}`);
+					bot.sendMessage(msg.chat.id, `Hello ${msg.chat.first_name} ✋`);
 				} else if (msg.text.toString().toLowerCase().includes(bye)) {
 					bot.sendMessage(
 						msg.chat.id,
 						'Hope to see you around again , Bye 😊'
 					);
+				} else if (msg.text.toString().toLowerCase().includes('love')) {
+						bot.sendMessage(msg.chat.id, '😘');
+				} else if (msg.text.toString().toLowerCase().includes('fuck')) {
+						bot.sendMessage(msg.chat.id, '🤐');
+						bot.sendMessage(msg.chat.id, "I think you should take some rest.\nDon't be crazy 🙄");
+				} else if (msg.text.toString().toLowerCase().includes('dev')) {
+					bot.sendMessage(msg.chat.id, 'His name is Hasanuzzaman (@shamim0902)\nFor more visit 🌎 www.hasanuzzaman.com');
 				} else {
-					// bot.sendChatAction(msg.chat.id, 'typing')
 					const ChatInstance = new Chat(msg);
 					let txt = ChatInstance.getMessage();
 					let opt = (new Buttons(msg.chat)).helpOptions().markup;
@@ -192,7 +197,6 @@ class NinjaBotInit {
 					)
 				}
 			}
-
 		});
 	}
 
@@ -221,59 +225,20 @@ class NinjaBotInit {
 		});
 
 		bot.onText(/\/home*/, (msg) => {
-			const opts = {
-				reply_markup: JSON.stringify({
-					keyboard: [
-						['/status', '/download'],
-						['/active', '/help'],
-						['/notify', '/copyright'],
-						[{ text: 'hi', callback_data: 'explore_user' }]
-					]
-				})
-			};
-			bot.sendMessage(
-				msg.chat.id,
-				`Hey ${msg.chat.first_name} 😁\nYou can check your wp.org plugin-status By asking me on text. 😎 Type or press /help for more query.`,
-				opts
-			);
+			const Button = new Buttons(msg.chat);
+			const chatId = msg.chat.id;
+			let docs = Button.startsOptions()
+			bot.sendMessage(chatId, docs.msg, docs.markup);
 		});
 
 		bot.onText(/\/start/, (msg, match) => {
-			const opts = {
-				reply_markup: JSON.stringify({
-					inline_keyboard: [
-						[	{ text: 'Check Status', callback_data: 'status_check' },
-							{ text: 'Check Active', callback_data: 'active_check' }
-						],
-						[	{ text: 'Check Download', callback_data: 'download_check' },
-							{ text: 'Help', callback_data: 'get_help' }
-						]
-					]
-				})
-			};
-			bot.sendMessage(
-				msg.chat.id,
-				`Hey ${msg.chat.first_name} 😁\nWelcome to WPNinja Bot😊 You can check your wp.org plugin-status By asking me on text. 😎 Type or press /help for more query.`,
-				opts
-			)
-		});
-
-		// Matches /love
-		bot.onText(/\/love/, function(msg) {
-			const opts = {
-				reply_to_message_id: msg.message_id,
-				reply_markup: JSON.stringify({
-					keyboard: [
-						['Yes, you are the bot of my life ❤'],
-						['No, sorry there is another one...']
-					]
-				})
-			};
-			bot.sendMessage(msg.chat.id, 'Do you love me?', opts);
+			const Button = new Buttons(msg.chat);
+			const chatId = msg.chat.id;
+			let docs = Button.startsOptions()
+			bot.sendMessage(chatId, docs.msg, docs.markup);
 		});
 
 		bot.onText(/\/copyright/, function(msg) {
-			console.log(msg.chat)
 			bot.sendMessage(
 				msg.chat.id,
 				'===Developer===\n\nHasanuzzaman 😁\nVisit: www.hasanuzzaman.com\nText: @shamim0902'
@@ -282,12 +247,39 @@ class NinjaBotInit {
 	}
 
 	subscribe() {
-		schedule.scheduleJob('58 57 16 * * *', () => {
-			// do query here 'me', shuvro 635152218
-			var subscribers = [643219013];
-			subscribers.forEach((id) => {
-				this.__getStatus(id, 'wp-social-reviews');
-			});
+		// schedule.scheduleJob('58 57 16 * * *', () => {
+		// 	// do query here 'me', shuvro 635152218
+		// 	var subscribers = [643219013];
+		// 	subscribers.forEach((id) => {
+		// 		this.__getStatus(id, 'wp-social-reviews');
+		// 	});
+		// });
+		//
+		bot.onText(/\/alert (.+)/, (msg, match) => {
+
+			var subscriptions = {
+				"ninja-charts": {
+					uid: 234321
+				}
+			};
+			let path = "ninja-charts"
+			firebase
+                .database()
+                .ref(path)
+                // .once("value")  //for read
+				.push(subscriptions) //for write
+			.then(data => {console.log(data)})
+
+
+
+
+		});
+
+		bot.onText(/\/notify*/, (msg) => {
+			const Button = new Buttons(msg.chat);
+			const chatId = msg.chat.id;
+			let docs = Button.notifyOptions()
+			bot.sendMessage(chatId, docs.msg, docs.markup);
 		});
 	}
 }
