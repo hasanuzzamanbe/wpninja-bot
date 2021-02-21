@@ -6,20 +6,12 @@ var bot = new TelegramBot(process.env.TOKEN, opt);
 bot.on('polling_error', console.log);
 const Bot = require('./Bot/Api');
 const WPApiGet = new Bot();
-const User = require('./Authlab/User');
-const Conversion = require('./Conversion/Conversion');
+const Chat = require('./Chat/Chat');
 
 const Buttons = require('./Buttons/Buttons')
-
 // console.log('hi cron');
 const schedule = require('node-schedule');
 
-const job = schedule.scheduleJob('1 07 18 * * *', function() {
-	console.log('The answer to life, the universe, and everything!');
-	[643219013, 635152218].forEach((id) => {
-		bot.sendMessage(id, '/st ninja-tables');
-	});
-});
 
 class NinjaBotInit {
 	constructor() {
@@ -27,6 +19,7 @@ class NinjaBotInit {
 		this.wpQueryRegister();
 		this.otherActions();
 		this.chatHandler();
+		this.subscribe();
 
 	}
 
@@ -84,14 +77,15 @@ class NinjaBotInit {
 		*/
 		 bot.onText(/\/dl (.+)/, async function(msg, match) {
 			const chatId = msg.chat.id;
+			const slug = match[1];
 			try {
-				const result = await WPApiGet.downloads(msg, match);
+				const result = await WPApiGet.downloads(msg, slug);
 				let rep = 'Today (';
 				for (let prop in result) {
 					rep += prop + ')\n';
 					rep += 'Downloads:    ' + result[prop];
 				}
-				bot.sendMessage(chatId, `===[${match[1]}]===\n\n` + rep);
+				bot.sendMessage(chatId, `===[${slug}]===\n\n` + rep);
 			} catch (err) {
 				bot.sendMessage(chatId, 'Oops! Please try another.');
 			}
@@ -101,9 +95,10 @@ class NinjaBotInit {
 		 * active query
 		 */
 		bot.onText(/\/ac (.+)/, async function(msg, match) {
+			const slug = match[1];
 			const chatId = msg.chat.id;
 			try {
-				const result = await WPApiGet.activeChart(msg, match);
+				const result = await WPApiGet.activeChart(msg, slug);
 			} catch (err) {
 				bot.sendMessage(chatId, 'Oops! Please try another.');
 			}
@@ -112,10 +107,16 @@ class NinjaBotInit {
 		/*
 		* Status query
 		*/
-		bot.onText(/\/st (.+)/, async function(msg, match) {
+		bot.onText(/\/st (.+)/, (msg, match) => {
+			const slug = match[1];
 			const chatId = msg.chat.id;
+			this.__getStatus(chatId, slug);
+		});
+	}
+
+	async __getStatus(chatId, match) {
 			try {
-				const result = await WPApiGet.status(msg, match);
+				const result = await WPApiGet.status(chatId, match);
 				const {
 					slug,
 					version,
@@ -163,8 +164,6 @@ class NinjaBotInit {
 			} catch (err) {
 				bot.sendMessage(chatId, 'Oops! Please try another.');
 			}
-		});
-
 	}
 
 	chatHandler() {
@@ -183,9 +182,14 @@ class NinjaBotInit {
 					);
 				} else {
 					// bot.sendChatAction(msg.chat.id, 'typing')
-					const Chat = new Conversion(msg.chat);
-					let txt = Chat.getMessage();
-					console.log(txt, 'shamim');
+					const ChatInstance = new Chat(msg);
+					let txt = ChatInstance.getMessage();
+					let opt = (new Buttons(msg.chat)).helpOptions().markup;
+					bot.sendMessage(
+						msg.chat.id,
+						txt,
+						opt
+					)
 				}
 			}
 
@@ -269,10 +273,21 @@ class NinjaBotInit {
 		});
 
 		bot.onText(/\/copyright/, function(msg) {
+			console.log(msg.chat)
 			bot.sendMessage(
 				msg.chat.id,
 				'===Developer===\n\nHasanuzzaman 😁\nVisit: www.hasanuzzaman.com\nText: @shamim0902'
 			);
+		});
+	}
+
+	subscribe() {
+		schedule.scheduleJob('58 57 16 * * *', () => {
+			// do query here 'me', shuvro 635152218
+			var subscribers = [643219013];
+			subscribers.forEach((id) => {
+				this.__getStatus(id, 'wp-social-reviews');
+			});
 		});
 	}
 }
