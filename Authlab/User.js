@@ -1,7 +1,6 @@
 class User {
 	constructor(info) {
 		this.user = info;
-		console.log(info);
 	}
 
 	getMessage() {
