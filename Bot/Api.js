@@ -8,7 +8,7 @@ class Api {
     async downloads(chatId, slug) {
         try {
             const api = `${this.endpoint}downloads.php?slug=${slug}&limit=1`;
-            let sendMessage = await fetch(api)
+            let sendMessage = await fetch(api);
             if (sendMessage.status === 200) {
                 return await sendMessage.json()
             }
@@ -40,7 +40,7 @@ class Api {
     async status(chatId, slug) {
         try {
             var api = `${this.endpoint2}${slug}.json`;
-            console.log(api)
+            console.log(api, 'status')
             let sendMessage = await fetch(api)
             if (sendMessage.status === 200) {
                 return await sendMessage.json()

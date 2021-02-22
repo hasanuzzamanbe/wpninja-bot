@@ -107,63 +107,85 @@ class NinjaBotInit {
 		/*
 		* Status query
 		*/
-		bot.onText(/\/st (.+)/, (msg, match) => {
+		bot.onText(/\/st (.+)/, async (msg, match) => {
 			const slug = match[1];
 			const chatId = msg.chat.id;
-			this.__getStatus(chatId, slug);
+
+			//async method
+			var statuses = await this.__getStatus(chatId, slug, false);
+			var template = this.__processStatus(statuses.result);
+			var rep = this.__processDownload(statuses.download, slug);
+			bot.sendMessage(chatId, template + '\n\n' + rep);
 		});
 	}
 
-	async __getStatus(chatId, match) {
+	async __getStatus(chatId, slug, hasVal = false) {
+		var has = hasVal;
 			try {
-				const result = await WPApiGet.status(chatId, match);
-				const {
-					slug,
-					version,
-					author,
-					requires,
-					requires_php,
-					rating,
-					support_threads,
-					support_threads_resolved,
-					downloaded,
-					tested,
-					added,
-					last_updated
-				} = result;
-
-				let str = author.split('">')[1];
-				let authorName = str ? str.slice(0, -4) : str;
-
-				var template = `====[ ${slug} ]====
-				  Version : ${version}
-				  Author : ${authorName}
-				  Requires WP : ${requires}
-				  Requires php : ${requires_php}
-				  Rating : ${rating}%
-				  Birthday 🎂: ${added}
-				  Support threads : ${support_threads}
-				  Support threads resolved : ${support_threads_resolved}
-				  Downloaded : ${downloaded}
-				  Tested : ${tested}
-				  Last Updated : ${last_updated}`;
-
-				bot.sendMessage(chatId, template);
-
-				const recentDownload = await WPApiGet.downloads('', [
-					'',
-					slug
-				]);
-				let rep = 'Today (';
-				for (let prop in recentDownload) {
-					rep += prop + ') 👇\n';
-					rep +=
-						'Downloads:                  ' + recentDownload[prop];
+				if (!has) {
+					var result = await WPApiGet.status(chatId, slug);
+					var recentDownload = await WPApiGet.downloads('', [
+						'',
+						slug
+					]);
+					return {
+						result: result,
+						download: recentDownload
+					}
+				} else {
+					return {
+						result: null,
+						download: null
+					}
 				}
-				bot.sendMessage(chatId, rep);
 			} catch (err) {
+				console.log(err)
 				bot.sendMessage(chatId, 'Oops! Please try another.');
 			}
+	}
+
+	__processDownload(recentDownload, slug) {
+		let rep = 'Today (';
+		for (let prop in recentDownload) {
+			rep += prop + ')\n';
+			rep +=
+				'Downloads of ' + slug + '👉 ' + recentDownload[prop];
+		}
+		return rep;
+	}
+
+	__processStatus(result) {
+		const {
+			slug,
+			version,
+			author,
+			requires,
+			requires_php,
+			rating,
+			support_threads,
+			support_threads_resolved,
+			downloaded,
+			tested,
+			added,
+			last_updated
+		} = result;
+
+		let str = author.split('">')[1];
+		let authorName = str ? str.slice(0, -4) : str;
+
+		var template = `====[ ${slug} ]====
+		  Version : ${version}
+		  Author : ${authorName}
+		  Requires WP : ${requires}
+		  Requires php : ${requires_php}
+		  Rating : ${rating}%
+		  Birthday 🎂: ${added}
+		  Support threads : ${support_threads}
+		  Support threads resolved : ${support_threads_resolved}
+		  Downloaded : ${downloaded}
+		  Tested : ${tested}
+		  Last Updated : ${last_updated}`;
+		return template;
 	}
 
 	chatHandler() {
@@ -247,33 +269,47 @@ class NinjaBotInit {
 	}
 
 	subscribe() {
-		// schedule.scheduleJob('58 57 16 * * *', () => {
-		// 	// do query here 'me', shuvro 635152218
-		// 	var subscribers = [643219013];
-		// 	subscribers.forEach((id) => {
-		// 		this.__getStatus(id, 'wp-social-reviews');
-		// 	});
-		// });
+		schedule.scheduleJob('01 02 22 * * *', () => {
+			console.log('cron-called')
+			firebase
+                .database()
+                .ref()
+				// .orderByChild("uid").equalTo('643219013')
+                .ref.on("value", snapshot => {
+					snapshot.forEach((userSnapshot) =>{
+						this.callloop(userSnapshot);
+					});
+
+				});
+		});
 		//
 		bot.onText(/\/alert (.+)/, (msg, match) => {
-
-			var subscriptions = {
-				"ninja-charts": {
-					uid: 234321
-				}
-			};
-			let path = "ninja-charts"
+			let path = match[1];
 			firebase
                 .database()
                 .ref(path)
+				// .child('643219013')
                 // .once("value")  //for read
-				.push(subscriptions) //for write
-			.then(data => {console.log(data)})
-
-
-
-
+				.push(msg.chat.id) //for write arup- 1340249975
+			// .then(data => {console.log(data)})
 		});
+
+		bot.onText(/\/subscriptions/, (msg, match) => {
+			// firebase
+            //     .database()
+            //     .ref()
+			// 	// .orderByChild("uid").equalTo('643219013')
+            //     .ref.on("value", snapshot => {
+			// 		snapshot.forEach( (userSnapshot) =>{
+
+			// 			//  this.callloop(userSnapshot);
+
+			// 		});
+			// 	});
+			bot.sendMessage(msg.chat.id, 'I am working on this feature...');
+		});
+
+
 
 		bot.onText(/\/notify*/, (msg) => {
 			const Button = new Buttons(msg.chat);
@@ -281,6 +317,28 @@ class NinjaBotInit {
 			let docs = Button.notifyOptions()
 			bot.sendMessage(chatId, docs.msg, docs.markup);
 		});
+	}
+
+	async callloop(userSnapshot) {
+		let slug = userSnapshot.key; //fluentform
+		let user = userSnapshot.val();
+		var hasVal = false;
+		for (let key in user) {
+			var chatId = parseInt(user[key]);
+			console.log(chatId)
+			var statuses = await this.__getStatus(chatId, slug);
+			// hasVal = true;
+			if (statuses.result) {
+				var template = this.__processStatus(statuses.result);
+				bot.sendMessage(chatId, template);
+			}
+
+			if (statuses.recentDownload) {
+				var rep = this.__processDownload(statuses.recentDownload, slug);
+				bot.sendMessage(chatId, rep);
+			}
+
+		}
 	}
 }
 
