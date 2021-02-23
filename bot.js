@@ -264,7 +264,8 @@ class NinjaBotInit {
 	}
 
 	subscribe() {
-		schedule.scheduleJob('01 30 09 * * *', () => {
+		schedule.scheduleJob('01 12 00 * * *', () => {
+			console.log('cron-called')
 			firebase
                 .database()
                 .ref('subscriptions')
@@ -272,29 +273,71 @@ class NinjaBotInit {
 					snapshot.forEach((userSnapshot) =>{
 						this.callloop(userSnapshot);
 					});
-
 				});
 		});
 		//
-		bot.onText(/\/alert (.+)/, (msg, match) => {
-			let path = 'subscriptions/' + match[1] + '/' + msg.chat.id;
-			firebase.database().ref(path).set(msg.chat.id);
+		bot.onText(/\/alert (.+)/, async (msg, match) => {
+			const chatId = msg.chat.id;
+			bot.sendMessage(chatId, `🔎 Searching for ${match[1]}...`)
+			var result = await WPApiGet.status(msg, match[1]);
+			if (result.status !== 404) {
+				var temp = this.__processStatus(result);
+				let path = 'subscriptions/' + match[1] + '/' + chatId;
+				firebase.database().ref(path).set(chatId, function(error) {
+					if (error) {
+						bot.sendMessage(chatId, "No subscribed, please try again later");
+					} else {
+						bot.sendMessage(chatId, temp + "\n\nThis plugin added to subscribed list. You will be notified everyday about this plugin,\nType /subscriptions to get all subscribed lists. 😊");
+					}
+				});
+			} else {
+				bot.sendMessage(chatId, 'Plugin not found 😕 Please check your slug again.');
+			}
+
 		});
 
 		bot.onText(/\/subscriptions/, (msg, match) => {
-			bot.sendMessage(msg.chat.id, 'I am working on this feature...');
-
+			bot.sendMessage(msg.chat.id, '🦉 Fetching your subscriptions...');
+			var chatId = msg.chat.id;
+			let path = chatId.toString();
+			let count = 0;
 			firebase
                 .database()
                 .ref('subscriptions')
-				// .orderByKey(msg.chat.id).equalTo(msg.chat.id)
-				// .getChildren
-                .on("value", snapshot => {
+                .once("value", snapshot => {
+					var my = 'You have subscribed:\n';
+					snapshot.forEach(data=> {
+						if (data.val()[path]) {
+							count ++
+							my += '[ ' + data.key + ' ]\n';
+						}
+					})
+					my += 'Your Notification will deliver everyday at 11 am.'
+					if (count) {
+						bot.sendMessage(chatId, my);
+					} else {
+						bot.sendMessage(chatId, 'You don\'t have any subscriptions yet! Please type "/alert plugin-slug" to add your plugin for daily notifications.');
+					}
 
-					// console.log(snapshot.val())
-
-				});
+			});
 		});
+
+		bot.onText(/\/unsubscribe/, (msg, match) => {
+			var chatId = msg.chat.id;
+			let path = chatId.toString();
+			firebase
+                .database()
+                .ref('subscriptions')
+                .once("value", snapshot => {
+					snapshot.forEach(data=> {
+						if (data.val()[path]) {
+							data.ref.child(path).remove();
+						}
+					})
+					// bot.sendMessage(chatId, my);
+			});
+		});
+
 
 
 
