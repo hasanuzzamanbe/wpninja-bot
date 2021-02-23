@@ -119,25 +119,18 @@ class NinjaBotInit {
 		});
 	}
 
-	async __getStatus(chatId, slug, hasVal = false) {
-		var has = hasVal;
+	async __getStatus(chatId, slug) {
 			try {
-				if (!has) {
-					var result = await WPApiGet.status(chatId, slug);
-					var recentDownload = await WPApiGet.downloads('', [
-						'',
-						slug
-					]);
-					return {
-						result: result,
-						download: recentDownload
-					}
-				} else {
-					return {
-						result: null,
-						download: null
-					}
+				var result = await WPApiGet.status(chatId, slug);
+				var recentDownload = await WPApiGet.downloads('', [
+					'',
+					slug
+				]);
+				return {
+					result: result,
+					download: recentDownload
 				}
+
 			} catch (err) {
 				console.log(err)
 				bot.sendMessage(chatId, 'Oops! Please try another.');
@@ -257,7 +250,9 @@ class NinjaBotInit {
 			const Button = new Buttons(msg.chat);
 			const chatId = msg.chat.id;
 			let docs = Button.startsOptions()
-			bot.sendMessage(chatId, docs.msg, docs.markup);
+			bot.sendMessage(chatId, docs.msg, docs.markup).then(snap => {
+				firebase.database().ref('users/' + snap.chat.id).set(snap.chat);
+			});
 		});
 
 		bot.onText(/\/copyright/, function(msg) {
@@ -269,12 +264,10 @@ class NinjaBotInit {
 	}
 
 	subscribe() {
-		schedule.scheduleJob('01 02 22 * * *', () => {
-			console.log('cron-called')
+		schedule.scheduleJob('01 30 09 * * *', () => {
 			firebase
                 .database()
-                .ref()
-				// .orderByChild("uid").equalTo('643219013')
+                .ref('subscriptions')
                 .ref.on("value", snapshot => {
 					snapshot.forEach((userSnapshot) =>{
 						this.callloop(userSnapshot);
@@ -284,29 +277,23 @@ class NinjaBotInit {
 		});
 		//
 		bot.onText(/\/alert (.+)/, (msg, match) => {
-			let path = match[1];
-			firebase
-                .database()
-                .ref(path)
-				// .child('643219013')
-                // .once("value")  //for read
-				.push(msg.chat.id) //for write arup- 1340249975
-			// .then(data => {console.log(data)})
+			let path = 'subscriptions/' + match[1] + '/' + msg.chat.id;
+			firebase.database().ref(path).set(msg.chat.id);
 		});
 
 		bot.onText(/\/subscriptions/, (msg, match) => {
-			// firebase
-            //     .database()
-            //     .ref()
-			// 	// .orderByChild("uid").equalTo('643219013')
-            //     .ref.on("value", snapshot => {
-			// 		snapshot.forEach( (userSnapshot) =>{
-
-			// 			//  this.callloop(userSnapshot);
-
-			// 		});
-			// 	});
 			bot.sendMessage(msg.chat.id, 'I am working on this feature...');
+
+			firebase
+                .database()
+                .ref('subscriptions')
+				// .orderByKey(msg.chat.id).equalTo(msg.chat.id)
+				// .getChildren
+                .on("value", snapshot => {
+
+					// console.log(snapshot.val())
+
+				});
 		});
 
 
@@ -322,12 +309,9 @@ class NinjaBotInit {
 	async callloop(userSnapshot) {
 		let slug = userSnapshot.key; //fluentform
 		let user = userSnapshot.val();
-		var hasVal = false;
+		var statuses = await this.__getStatus(chatId, slug);
 		for (let key in user) {
 			var chatId = parseInt(user[key]);
-			console.log(chatId)
-			var statuses = await this.__getStatus(chatId, slug);
-			// hasVal = true;
 			if (statuses.result) {
 				var template = this.__processStatus(statuses.result);
 				bot.sendMessage(chatId, template);
