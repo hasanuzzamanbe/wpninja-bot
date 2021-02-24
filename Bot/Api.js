@@ -3,6 +3,7 @@ class Api {
     constructor() {
         this.endpoint = 'https://api.wordpress.org/stats/plugin/1.0/';
         this.endpoint2 = 'http://api.wordpress.org/plugins/info/1.0/';
+        this.endpoint3 = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request%5Bslug%5D=';
     }
 
     async downloads(chatId, slug) {
@@ -39,7 +40,7 @@ class Api {
 
     async status(chatId, slug) {
         try {
-            var api = `${this.endpoint2}${slug}.json`;
+            var api = `${this.endpoint3}${slug}&request%5Bfields%5D%5Bdownloaded%5D=1`;
             console.log(api, 'status')
             let sendMessage = await fetch(api)
             if (sendMessage.status === 200) {

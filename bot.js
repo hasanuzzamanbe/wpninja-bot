@@ -35,13 +35,6 @@ class NinjaBotInit {
 			bot.sendMessage(chatId, docs.msg, docs.markup);
 		});
 
-		bot.onText(/\/active/, function (msg) {
-			const Button = new Buttons(msg.chat);
-			const chatId = msg.chat.id;
-			let docs = Button.activeOptions()
-			bot.sendMessage(chatId, docs.msg, docs.markup);
-		});
-
 		bot.onText(/\/chart/, function (msg) {
 			const Button = new Buttons(msg.chat);
 			const chatId = msg.chat.id;
@@ -71,6 +64,8 @@ class NinjaBotInit {
 				docs = Button.helpOptions()
 			} else if (res.data === "get_notify") {
 				docs = Button.notifyOptions()
+			} else if (res.data === "get_chart") {
+				docs = Button.chartOptions()
 			}
 
 			if (docs) {
@@ -197,6 +192,7 @@ class NinjaBotInit {
 			support_threads,
 			support_threads_resolved,
 			downloaded,
+			active_installs,
 			tested,
 			added,
 			last_updated
@@ -210,13 +206,14 @@ class NinjaBotInit {
 		  Author : ${authorName}
 		  Requires WP : ${requires}
 		  Requires php : ${requires_php}
-		  Rating : ${rating}%
+		  Active installs 🎉: ${active_installs}
+		  Rating ⭐️: ${rating}%
+		  Downloaded ⬇️: ${downloaded}
 		  Birthday 🎂: ${added}
-		  Support threads : ${support_threads}
-		  Support threads resolved : ${support_threads_resolved}
-		  Downloaded : ${downloaded}
-		  Tested : ${tested}
-		  Last Updated : ${last_updated}`;
+		  Support threads ❌: ${support_threads}
+		  Support threads resolved ✔️: ${support_threads_resolved}
+		  Tested 🔨: ${tested}
+		  Last Updated ⏰: ${last_updated}`;
 		return template;
 	}
 
@@ -303,7 +300,7 @@ class NinjaBotInit {
 	}
 
 	subscribe() {
-		schedule.scheduleJob('01 12 00 * * *', () => {
+		schedule.scheduleJob('01 01 08 * * *', () => {
 			console.log('cron-called')
 			firebase
                 .database()
@@ -351,7 +348,7 @@ class NinjaBotInit {
 							my += '[ ' + data.key + ' ]\n';
 						}
 					})
-					my += 'Your Notification will deliver everyday at 11 am.'
+					my += 'Your Notification will deliver everyday at 8 am.'
 					if (count) {
 						bot.sendMessage(chatId, my);
 					} else {
