@@ -23,7 +23,7 @@ class Api {
 
     async activeChart(chatId, slug) {
         try {
-            var api = `${this.endpoint}active-installs.php?slug=${slug}&limit=70`;
+            var api = `${this.endpoint}active-installs.php?slug=${slug}&limit=140`;
             let sendMessage = await fetch(api)
             if (sendMessage.status === 200) {
                 return await sendMessage.json()

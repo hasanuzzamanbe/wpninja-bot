@@ -12,6 +12,8 @@ const schedule = require('node-schedule');
 const WPApiGet = new Bot();
 var firebase = require('firebase');
 
+const GoogleChartsNode = require('google-charts-node');
+
 class NinjaBotInit {
 	constructor() {
 		this.wpMenuButton();
@@ -26,21 +28,28 @@ class NinjaBotInit {
 	}
 
 	wpMenuButton() {
-		bot.onText(/\/download/, function onLoveText(msg) {
+		bot.onText(/\/download/, function (msg) {
 			const Button = new Buttons(msg.chat);
 			const chatId = msg.chat.id;
 			let docs = Button.downloadOptions()
 			bot.sendMessage(chatId, docs.msg, docs.markup);
 		});
 
-		bot.onText(/\/active/, function onLoveText(msg) {
+		bot.onText(/\/active/, function (msg) {
 			const Button = new Buttons(msg.chat);
 			const chatId = msg.chat.id;
 			let docs = Button.activeOptions()
 			bot.sendMessage(chatId, docs.msg, docs.markup);
 		});
 
-		bot.onText(/\/status/, function onLoveText(msg) {
+		bot.onText(/\/chart/, function (msg) {
+			const Button = new Buttons(msg.chat);
+			const chatId = msg.chat.id;
+			let docs = Button.chartOptions()
+			bot.sendMessage(chatId, docs.msg, docs.markup);
+		});
+
+		bot.onText(/\/status/, function (msg) {
 			const Button = new Buttons(msg.chat);
 			const chatId = msg.chat.id;
 			let docs = Button.statusOptions()
@@ -94,16 +103,46 @@ class NinjaBotInit {
 		/*
 		 * active query
 		 */
-		bot.onText(/\/ac (.+)/, async function(msg, match) {
+		bot.onText(/\/ch (.+)/, async function(msg, match) {
 			const slug = match[1];
 			const chatId = msg.chat.id;
+			bot.sendMessage(chatId, '🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️\nChart Processing...');
+
 			try {
 				const result = await WPApiGet.activeChart(msg, slug);
+				var dataArr = Object.entries(result);
+				var formatted = dataArr.map((key) => {
+					return ([key[0], parseFloat(key[1])]);
+				})
+				formatted.unshift(['Date', 'Growth']);
+				const drawChart = `
+					const myChart = google.visualization.arrayToDataTable(
+							${JSON.stringify(formatted)}
+						);
+					const options = {
+						title: 'Active Installation Growth chart of ${match[1]}',
+						chartArea: {width: '50%'},
+						hAxis: {
+							title: 'Date',
+							minValue: 0
+						},
+						vAxis: {
+							title: 'Active Growth'
+						}
+					};
+
+				const chart = new google.visualization.LineChart(container);
+				chart.draw(myChart, options);`
+				// Render the chart to image
+				const image = await GoogleChartsNode.render(drawChart, {
+					width: 800,
+					height: 600,
+				});
+				bot.sendPhoto(chatId, image);
 			} catch (err) {
-				bot.sendMessage(chatId, 'Oops! Please try another.');
+				bot.sendMessage(chatId, 'Oops! Plugin not found.💔\nPlease try another.');
 			}
 		});
-
 		/*
 		* Status query
 		*/
@@ -334,7 +373,7 @@ class NinjaBotInit {
 							data.ref.child(path).remove();
 						}
 					})
-					// bot.sendMessage(chatId, my);
+					bot.sendMessage(chatId, 'You have successfully unsubscribed from all notifications 🙂');
 			});
 		});
 

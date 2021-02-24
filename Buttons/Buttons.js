@@ -10,9 +10,10 @@ class Buttons {
                         ['/st fluentform', '/home 🏠'],
                         ['/st ninja-tables', '/download'],
                         ['/st fluent-smtp', '/active'],
+                        ['/st wp-payment-form', '/chart'],
                         ['/st fluent-crm', '/help'],
-                        ['/st ninja-charts', '/st wp-payment-form'],
-                        ['/st ninja-job-board', '/st wp-social-reviews']
+                        ['/st ninja-charts', '/st wp-social-reviews'],
+                        ['/st ninja-job-board', '/st fluentforms-pdf']
                     ]
                 })
             },
@@ -29,9 +30,10 @@ class Buttons {
                         ['/dl fluentform', '/home 🏠'],
                         ['/dl ninja-tables', '/status'],
                         ['/dl fluent-smtp', '/active'],
+                        ['/dl wp-payment-form', '/chart'],
                         ['/dl fluent-crm', '/help'],
-                        ['/dl ninja-charts', '/dl wp-payment-form'],
-                        ['/dl ninja-job-board', '/dl wp-social-reviews']
+                        ['/dl ninja-charts', '/dl wp-social-reviews'],
+                        ['/dl ninja-job-board', '/dl fluentforms-pdf']
                     ]
                 })
             },
@@ -45,11 +47,12 @@ class Buttons {
                 reply_markup: JSON.stringify({
                     keyboard: [
                         ['/ac fluentform', '/home 🏠'],
-                        ['/ac ninja-tables', '/download'],
-                        ['/ac fluent-smtp', '/status'],
+                        ['/ac ninja-tables', '/status'],
+                        ['/ac fluent-smtp', '/download'],
+                        ['/ac wp-payment-form', '/chart'],
                         ['/ac fluent-crm', '/help'],
-                        ['/ac ninja-charts', '/ac wp-payment-form'],
-                        ['/ac ninja-job-board', '/ac wp-social-reviews']
+                        ['/ac ninja-charts', '/ac wp-social-reviews'],
+                        ['/ac ninja-job-board', '/ac fluentforms-pdf']
                     ]
                 })
             },
@@ -57,12 +60,34 @@ class Buttons {
         };
         return opts;
     }
+
+    chartOptions() {
+        var opts = {
+            markup: {
+                reply_markup: JSON.stringify({
+                    keyboard: [
+                        ['/ch fluentform', '/home 🏠'],
+                        ['/ch ninja-tables', '/status'],
+                        ['/ch fluent-smtp', '/download'],
+                        ['/ch wp-payment-form', '/chart'],
+                        ['/ch fluent-crm', '/help'],
+                        ['/ch ninja-charts', '/ch wp-social-reviews'],
+                        ['/ch ninja-job-board', '/ch fluentforms-pdf']
+                    ]
+                })
+            },
+            msg: "Type '/ch your-plugin-slug'\nOr select from bellow menu 👇"
+        };
+        return opts;
+    }
+
     helpOptions() {
         var opts = {
             markup: {
                 reply_markup: JSON.stringify({
                     keyboard: [
 						['/status', '/download', '/home 🏠'],
+                        ['/chart', '/active'],
 						[
 							'/st ninja-tables',
 							'/st fluent-crm',
