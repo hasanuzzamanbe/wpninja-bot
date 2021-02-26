@@ -13,7 +13,7 @@ const schedule = require('node-schedule');
 const WPApiGet = new Bot();
 var firebase = require('firebase');
 
-const GoogleChartsNode = require('google-charts-node');
+const GoogleChartsNode = require('./google-chart-node/index');
 
 class NinjaBotInit {
 	constructor() {
