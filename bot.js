@@ -1,4 +1,5 @@
 process.env['NTBA_FIX_319'] = 1;
+process.env["NTBA_FIX_350"] = 1;
 require('dotenv').config({ silent: true });
 var TelegramBot = require('node-telegram-bot-api');
 var opt = { polling: true };
@@ -136,8 +137,10 @@ class NinjaBotInit {
 					width: 800,
 					height: 600,
 				});
+				console.log(image, 'img')
 				bot.sendPhoto(chatId, image);
 			} catch (err) {
+				console.log(err, 'err');
 				bot.sendMessage(chatId, 'Oops! Plugin not found.💔\nPlease try another.');
 			}
 		});
