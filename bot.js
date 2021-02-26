@@ -82,6 +82,8 @@ class NinjaBotInit {
 		 bot.onText(/\/dl (.+)/, async function(msg, match) {
 			const chatId = msg.chat.id;
 			const slug = match[1];
+			bot.sendMessage(chatId, `<i>Fetching download status of ${match[1]}...</i>`, { parse_mode: "HTML" });
+
 			try {
 				const result = await WPApiGet.downloads(msg, slug, 15);
 				let rep = "Last 15 day's downloads\n-------------------\n";
@@ -101,7 +103,7 @@ class NinjaBotInit {
 		bot.onText(/\/ch (.+)/, async function(msg, match) {
 			const slug = match[1];
 			const chatId = msg.chat.id;
-			bot.sendMessage(chatId, '🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️\nChart Processing...');
+			bot.sendMessage(chatId, `🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️🏄‍♂️\nChart rendering for ${match[1]}...`, { parse_mode: "HTML" });
 
 			try {
 				const result = await WPApiGet.activeChart(msg, slug);
@@ -144,29 +146,31 @@ class NinjaBotInit {
 		bot.onText(/\/st (.+)/, async (msg, match) => {
 			const slug = match[1];
 			const chatId = msg.chat.id;
-
+			bot.sendMessage(chatId, `<i>Fetching latest status of ${match[1]}...</i>`, { parse_mode: "HTML" });
 			//async method
 			var statuses = await this.__getStatus(chatId, slug, false);
-			var template = this.__processStatus(statuses.result);
-			var rep = this.__processDownload(statuses.download, slug);
-			bot.sendMessage(chatId, template + '\n\n' + rep, { parse_mode: "HTML" });
+			if (statuses.result.status !== 404) {
+				var template = this.__processStatus(statuses.result);
+				var rep = this.__processDownload(statuses.download, slug);
+				bot.sendMessage(chatId, template + '\n\n' + rep, { parse_mode: "HTML" });
+			} else {
+				bot.sendMessage(chatId, '🚫 Warning:' + statuses.result.statusText + '\nPlease choose a correct slug');
+			}
+
 		});
 	}
-
-
 
 	async __getStatus(chatId, slug) {
 			try {
 				var result = await WPApiGet.status(chatId, slug);
 				var recentDownload = await WPApiGet.downloads('', [
-					'',
-					slug
+				'',
+				slug
 				], 1);
 				return {
 					result: result,
 					download: recentDownload
 				}
-
 			} catch (err) {
 				console.log(err)
 				bot.sendMessage(chatId, 'Oops! Please try another.');
@@ -215,9 +219,9 @@ class NinjaBotInit {
 		---------------------
 		Birthday 🎂: ${added}
 		Support threads ❌: ${support_threads}
-		Support threads resolved ✔️: ${support_threads_resolved}
+		Threads resolved ✔️: ${support_threads_resolved}
 		Tested 🔨: ${tested}
-		Last Updated ⏰: ${last_updated}</code>`;
+		Updated at⏰: ${last_updated}</code>`;
 		return template;
 	}
 
@@ -227,20 +231,22 @@ class NinjaBotInit {
 			if (!isCommand) {
 				let hi = 'hi';
 				let bye = 'bye';
-				if (msg.text.toString().toLowerCase().indexOf(hi) === 0) {
+
+				var makeInsensitive = msg.text.toString().toLowerCase();
+				if (makeInsensitive.indexOf(hi) === 0) {
 					bot.sendMessage(msg.chat.id, `Hello ${msg.chat.first_name} ✋`);
-				} else if (msg.text.toString().toLowerCase().includes(bye)) {
+				} else if (makeInsensitive.includes(bye)) {
 					bot.sendMessage(
 						msg.chat.id,
 						'Hope to see you around again , Bye 😊'
 					);
-				} else if (msg.text.toString().toLowerCase().includes('love')) {
+				} else if (makeInsensitive.includes('love')) {
 						bot.sendMessage(msg.chat.id, '😘');
-				} else if (msg.text.toString().toLowerCase().includes('fuck')) {
+				} else if (makeInsensitive.includes('fuck')) {
 						bot.sendMessage(msg.chat.id, '🤐');
 						bot.sendMessage(msg.chat.id, "I think you should take some rest.\nDon't be crazy 🙄");
-				} else if (msg.text.toString().toLowerCase().includes('dev')) {
-					bot.sendMessage(msg.chat.id, 'His name is Hasanuzzaman (@shamim0902)\nFor more visit 🌎 www.hasanuzzaman.com');
+				} else if (makeInsensitive.includes('dev') || makeInsensitive.includes('creator')) {
+					bot.sendMessage(msg.chat.id, 'Created by Hasanuzzaman (@shamim0902)\nFor more visit 🌎 www.hasanuzzaman.com');
 				} else {
 					const ChatInstance = new Chat(msg);
 					let txt = ChatInstance.getMessage();
@@ -300,6 +306,18 @@ class NinjaBotInit {
 				'===Developer===\n\nHasanuzzaman 😁\nVisit: www.hasanuzzaman.com\nText: @shamim0902'
 			);
 		});
+		bot.onText(/\/feedback/, function(msg) {
+
+			bot.sendMessage(
+				msg.chat.id,
+				'<i>Hi ' + msg.chat.first_name + '😁\n' +
+				'I am really happy to hear from you.' +
+				'If you have any suggestion or report to submit you may text to the ' +
+				'developer on telegram (@shamim0902)' +
+				'or send a <a href="mail-to:hasanuzzamanbe@gmail.com">mail</a>.</i>',
+				{parse_mode: "HTML"}
+			);
+		});
 	}
 
 	subscribe() {
@@ -317,7 +335,7 @@ class NinjaBotInit {
 		//
 		bot.onText(/\/alert (.+)/, async (msg, match) => {
 			const chatId = msg.chat.id;
-			bot.sendMessage(chatId, `🔎 Searching for ${match[1]}...`)
+			bot.sendMessage(chatId, `🔎 <i>Searching for</i> ${match[1]}...`, {parse_mode: "HTML"})
 			var result = await WPApiGet.status(msg, match[1]);
 			if (result.status !== 404) {
 				var temp = this.__processStatus(result);
@@ -326,7 +344,7 @@ class NinjaBotInit {
 					if (error) {
 						bot.sendMessage(chatId, "No subscribed, please try again later");
 					} else {
-						bot.sendMessage(chatId, temp + "\n\nThis plugin added to subscribed list. You will be notified everyday about this plugin,\nType /subscriptions to get all subscribed lists. 😊", { parse_mode: "HTML" });
+						bot.sendMessage(chatId, temp + "\n\nThis plugin is added to subscribed list. You will be notified everyday about this plugin,\nType /subscriptions to get all subscribed lists. 😊", { parse_mode: "HTML" });
 					}
 				});
 			} else {
@@ -336,7 +354,7 @@ class NinjaBotInit {
 		});
 
 		bot.onText(/\/subscriptions/, (msg, match) => {
-			bot.sendMessage(msg.chat.id, '🦉 Fetching your subscriptions...');
+			bot.sendMessage(msg.chat.id, '🦉 <i>Fetching your subscriptions...</i>', {parse_mode: "HTML"});
 			var chatId = msg.chat.id;
 			let path = chatId.toString();
 			let count = 0;

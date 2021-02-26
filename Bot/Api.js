@@ -41,11 +41,11 @@ class Api {
     async status(chatId, slug) {
         try {
             var api = `${this.endpoint3}${slug}&request%5Bfields%5D%5Bdownloaded%5D=1`;
-            let sendMessage = await fetch(api)
-            if (sendMessage.status === 200) {
+            let sendMessage = await fetch(api);
+            if (sendMessage.status == 200) {
                 return await sendMessage.json()
             }
-            return {
+            throw {
                 status: sendMessage.status,
                 statusText: sendMessage.statusText
             }

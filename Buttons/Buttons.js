@@ -77,7 +77,7 @@ class Buttons {
 							'/st fluent-crm',
 							'/st fluent-form'
 						],
-						['/authlab', '/copyright']
+						['/copyright', '/feedback']
 					]
                 }),
                 parse_mode: "HTML"
@@ -103,7 +103,7 @@ class Buttons {
                 }),
                 parse_mode: "HTML"
             },
-            msg: `Select from the menu to get notification everyday about ManageNinja's plugin. Or type\n<code>/alert plugin-slug</code>\nto set notification for specific plugin.\nYou can subscribe multiple plugins.`
+            msg: `Type\n<code>/alert plugin-slug</code>\nto set notification for specific plugin.\nYou can subscribe multiple plugins.`
         };
         return opts;
     }
