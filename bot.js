@@ -107,6 +107,7 @@ class NinjaBotInit {
 
 			try {
 				const result = await WPApiGet.activeChart(msg, slug);
+				console.log(result, 'on ch')
 				var dataArr = Object.entries(result);
 				var formatted = dataArr.map((key) => {
 					return ([key[0], parseFloat(key[1])]);
