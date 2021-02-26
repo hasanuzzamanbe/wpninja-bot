@@ -6,9 +6,9 @@ class Api {
         this.endpoint3 = 'https://api.wordpress.org/plugins/info/1.2/?action=plugin_information&request%5Bslug%5D=';
     }
 
-    async downloads(chatId, slug) {
+    async downloads(chatId, slug, limit = 1) {
         try {
-            const api = `${this.endpoint}downloads.php?slug=${slug}&limit=1`;
+            const api = `${this.endpoint}downloads.php?slug=${slug}&limit=${limit}`;
             let sendMessage = await fetch(api);
             if (sendMessage.status === 200) {
                 return await sendMessage.json()
@@ -24,7 +24,7 @@ class Api {
 
     async activeChart(chatId, slug) {
         try {
-            var api = `${this.endpoint}active-installs.php?slug=${slug}&limit=140`;
+            var api = `${this.endpoint}active-installs.php?slug=${slug}&limit=210`;
             let sendMessage = await fetch(api)
             if (sendMessage.status === 200) {
                 return await sendMessage.json()
@@ -41,7 +41,6 @@ class Api {
     async status(chatId, slug) {
         try {
             var api = `${this.endpoint3}${slug}&request%5Bfields%5D%5Bdownloaded%5D=1`;
-            console.log(api, 'status')
             let sendMessage = await fetch(api)
             if (sendMessage.status === 200) {
                 return await sendMessage.json()

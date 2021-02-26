@@ -83,13 +83,13 @@ class NinjaBotInit {
 			const chatId = msg.chat.id;
 			const slug = match[1];
 			try {
-				const result = await WPApiGet.downloads(msg, slug);
-				let rep = 'Today (';
+				const result = await WPApiGet.downloads(msg, slug, 15);
+				let rep = "Last 15 day's downloads\n-------------------\n";
 				for (let prop in result) {
-					rep += prop + ')\n';
-					rep += 'Downloads:    ' + result[prop];
+					rep += `<code>${prop} : ${result[prop]}</code>\n`;
 				}
-				bot.sendMessage(chatId, `===[${slug}]===\n\n` + rep);
+				rep += '-------------------\n'
+				bot.sendMessage(chatId, `===[<b><i>${slug}</i></b>]===\n${rep}` , { parse_mode: "HTML" });
 			} catch (err) {
 				bot.sendMessage(chatId, 'Oops! Please try another.');
 			}
@@ -122,7 +122,7 @@ class NinjaBotInit {
 							minValue: 0
 						},
 						vAxis: {
-							title: 'Active Growth'
+							title: 'Active Growth %'
 						}
 					};
 
@@ -149,9 +149,11 @@ class NinjaBotInit {
 			var statuses = await this.__getStatus(chatId, slug, false);
 			var template = this.__processStatus(statuses.result);
 			var rep = this.__processDownload(statuses.download, slug);
-			bot.sendMessage(chatId, template + '\n\n' + rep);
+			bot.sendMessage(chatId, template + '\n\n' + rep, { parse_mode: "HTML" });
 		});
 	}
+
+
 
 	async __getStatus(chatId, slug) {
 			try {
@@ -159,7 +161,7 @@ class NinjaBotInit {
 				var recentDownload = await WPApiGet.downloads('', [
 					'',
 					slug
-				]);
+				], 1);
 				return {
 					result: result,
 					download: recentDownload
@@ -172,11 +174,11 @@ class NinjaBotInit {
 	}
 
 	__processDownload(recentDownload, slug) {
-		let rep = 'Today (';
+		let rep = '<code>Today (';
 		for (let prop in recentDownload) {
 			rep += prop + ')\n';
 			rep +=
-				'Downloads of ' + slug + '👉 ' + recentDownload[prop];
+				'Downloads of ' + slug + '👉 ' + recentDownload[prop] + '</code>';
 		}
 		return rep;
 	}
@@ -201,19 +203,21 @@ class NinjaBotInit {
 		let str = author.split('">')[1];
 		let authorName = str ? str.slice(0, -4) : str;
 
-		var template = `====[ ${slug} ]====
-		  Version : ${version}
-		  Author : ${authorName}
-		  Requires WP : ${requires}
-		  Requires php : ${requires_php}
-		  Active installs 🎉: ${active_installs}
-		  Rating ⭐️: ${rating}%
-		  Downloaded ⬇️: ${downloaded}
-		  Birthday 🎂: ${added}
-		  Support threads ❌: ${support_threads}
-		  Support threads resolved ✔️: ${support_threads_resolved}
-		  Tested 🔨: ${tested}
-		  Last Updated ⏰: ${last_updated}`;
+		var template = `====[ <b><i>${slug}</i></b> ]====<code>
+		Version : ${version}
+		Author : <pre>${authorName}</pre>
+		Requires WP : ${requires}
+		Requires php : ${requires_php}
+		---------------------
+		Active installs 🎉: ${active_installs}+
+		Rating ⭐️: ${rating}%
+		Downloaded ⬇️: ${downloaded}
+		---------------------
+		Birthday 🎂: ${added}
+		Support threads ❌: ${support_threads}
+		Support threads resolved ✔️: ${support_threads_resolved}
+		Tested 🔨: ${tested}
+		Last Updated ⏰: ${last_updated}</code>`;
 		return template;
 	}
 
@@ -261,8 +265,7 @@ class NinjaBotInit {
 				{
 					caption:
 						'www.authlab.io\nWhere a band of geeks and nerds actualize your business ideas'
-				},
-				{ parse_mode: 'pre' }
+				}
 			);
 			bot.sendLocation(msg.chat.id, 24.90986066235793, 91.86431760739505);
 		});
@@ -323,7 +326,7 @@ class NinjaBotInit {
 					if (error) {
 						bot.sendMessage(chatId, "No subscribed, please try again later");
 					} else {
-						bot.sendMessage(chatId, temp + "\n\nThis plugin added to subscribed list. You will be notified everyday about this plugin,\nType /subscriptions to get all subscribed lists. 😊");
+						bot.sendMessage(chatId, temp + "\n\nThis plugin added to subscribed list. You will be notified everyday about this plugin,\nType /subscriptions to get all subscribed lists. 😊", { parse_mode: "HTML" });
 					}
 				});
 			} else {
@@ -345,12 +348,12 @@ class NinjaBotInit {
 					snapshot.forEach(data=> {
 						if (data.val()[path]) {
 							count ++
-							my += '[ ' + data.key + ' ]\n';
+							my += '[ <code>' + data.key + '</code> ]\n';
 						}
 					})
 					my += 'Your Notification will deliver everyday at 8 am.'
 					if (count) {
-						bot.sendMessage(chatId, my);
+						bot.sendMessage(chatId, my, { parse_mode: "HTML" });
 					} else {
 						bot.sendMessage(chatId, 'You don\'t have any subscriptions yet! Please type "/alert plugin-slug" to add your plugin for daily notifications.');
 					}
@@ -393,7 +396,7 @@ class NinjaBotInit {
 			var chatId = parseInt(user[key]);
 			if (statuses.result) {
 				var template = this.__processStatus(statuses.result);
-				bot.sendMessage(chatId, template);
+				bot.sendMessage(chatId, template, { parse_mode: "HTML" });
 			}
 
 			if (statuses.recentDownload) {

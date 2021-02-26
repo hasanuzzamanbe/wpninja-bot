@@ -10,14 +10,15 @@ class Buttons {
                         ['/st fluentform', '/home 🏠'],
                         ['/st ninja-tables', '/downloads'],
                         ['/st fluent-smtp', '/chart'],
-                        ['/st wp-payment-form', '/help'],
-                        ['/st fluent-crm', '/st wp-social-reviews'],
-                        ['/st ninja-charts', '/st fluentforms-pdf'],
-                        ['/st ninja-job-board']
+                        ['/st wp-payment-form', '/status'],
+                        ['/st fluent-crm', '/help'],
+                        ['/st ninja-charts', '/st wp-social-reviews'],
+                        ['/st ninja-job-board', '/st fluentforms-pdf']
                     ]
-                })
+                }),
+                parse_mode: "HTML"
             },
-            msg: "Type '/st your-plugin-slug'\nOr select from bellow menu 👇"
+            msg: "Type <pre>/st your-plugin-slug</pre>\nTo get all status, Some popular plugins are showing bellow menu as suggestion 👇"
         };
         return opts;
     }
@@ -35,9 +36,10 @@ class Buttons {
                         ['/dl ninja-charts', '/dl fluentforms-pdf'],
                         ['/dl ninja-job-board']
                     ]
-                })
+                }),
+                parse_mode: "HTML"
             },
-            msg: "Type '/dl your-plugin-slug'\nOr select from bellow menu 👇"
+            msg: "Type <pre>/dl your-plugin-slug</pre>\nTo get recent download status, Some popular plugins are showing bellow menu as suggestion 👇"
         };
         return opts;
     }
@@ -55,9 +57,10 @@ class Buttons {
                         ['/ch ninja-charts', '/ch wp-social-reviews'],
                         ['/ch ninja-job-board', '/ch fluentforms-pdf']
                     ]
-                })
+                }),
+                parse_mode: "HTML"
             },
-            msg: "Type '/ch your-plugin-slug'\nOr select from bellow menu 👇"
+            msg: "Type <code><b>/ch your-plugin-slug</b></code>\nTo get active growth chart, Some popular plugins are showing bellow menu as suggestion 👇"
         };
         return opts;
     }
@@ -68,7 +71,7 @@ class Buttons {
                 reply_markup: JSON.stringify({
                     keyboard: [
 						['/status', '/download', '/home 🏠'],
-                        ['/chart', '/chart'],
+                        ['/chart', '/help'],
 						[
 							'/st ninja-tables',
 							'/st fluent-crm',
@@ -76,7 +79,8 @@ class Buttons {
 						],
 						['/authlab', '/copyright']
 					]
-                })
+                }),
+                parse_mode: "HTML"
             },
             msg: `Don't worry ${this.user.first_name} 😊\nI am here to help you.\nPlease select from bellow menu 👇`
         };
@@ -96,9 +100,10 @@ class Buttons {
                         ['/alert ninja-charts', '/alert wp-payment-form'],
                         ['/alert ninja-job-board', '/alert wp-social-reviews']
 					]
-                })
+                }),
+                parse_mode: "HTML"
             },
-            msg: `Select from the menu to get notification everyday about ManageNinja's plugin. Or type\n/alert plugin-slug\nto set notification for specific plugin.\nYou can subscribe multiple plugins.`
+            msg: `Select from the menu to get notification everyday about ManageNinja's plugin. Or type\n<code>/alert plugin-slug</code>\nto set notification for specific plugin.\nYou can subscribe multiple plugins.`
         };
         return opts;
     }
@@ -117,7 +122,8 @@ class Buttons {
 						],
 						[{ text: '🔔 Notifications', callback_data: 'get_notify' }]
 					]
-				})
+				}),
+                parse_mode: "HTML"
             },
             msg: `Hey ${this.user.first_name} 😁\nGreeting from @wpninja_bot\nYou can check your wp.org plugin-status By asking me on text. 😎 Type or press /help for more query.`
         };
