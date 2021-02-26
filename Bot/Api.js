@@ -26,7 +26,6 @@ class Api {
         try {
             var api = `${this.endpoint}active-installs.php?slug=${slug}&limit=210`;
             let sendMessage = await fetch(api)
-            console.log(sendMessage)
             if (sendMessage.status == 400) {
                 return {
                     status: sendMessage.status,

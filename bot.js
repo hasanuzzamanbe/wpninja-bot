@@ -108,7 +108,6 @@ class NinjaBotInit {
 
 			try {
 				const result = await WPApiGet.activeChart(msg, slug);
-				console.log(result, 'on ch')
 				var dataArr = Object.entries(result);
 				var formatted = dataArr.map((key) => {
 					return ([key[0], parseFloat(key[1])]);
@@ -137,10 +136,9 @@ class NinjaBotInit {
 					width: 800,
 					height: 600,
 				});
-				console.log(image, 'img')
 				bot.sendPhoto(chatId, image);
 			} catch (err) {
-				console.log(err, 'err');
+				console.log(err, 'err from draw chart');
 				bot.sendMessage(chatId, 'Oops! Plugin not found.💔\nPlease try another.');
 			}
 		});
@@ -326,7 +324,6 @@ class NinjaBotInit {
 
 	subscribe() {
 		schedule.scheduleJob('01 01 08 * * *', () => {
-			console.log('cron-called')
 			firebase
                 .database()
                 .ref('subscriptions')
