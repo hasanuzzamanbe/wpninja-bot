@@ -323,11 +323,12 @@ class NinjaBotInit {
 	}
 
 	subscribe() {
-		schedule.scheduleJob('01 01 08 * * *', () => {
+		schedule.scheduleJob('01 57 08 * * *', () => {
+			console.log('cr called')
 			firebase
                 .database()
-                .ref('subscriptions')
-                .ref.on("value", snapshot => {
+                .ref('test')
+                .ref.once("value", snapshot => {
 					snapshot.forEach((userSnapshot) =>{
 						this.callloop(userSnapshot);
 					});
@@ -411,6 +412,7 @@ class NinjaBotInit {
 		let slug = userSnapshot.key; //fluentform
 		let user = userSnapshot.val();
 		var statuses = await this.__getStatus(chatId, slug);
+		console.log(statuses,'on st')
 		for (let key in user) {
 			var chatId = parseInt(user[key]);
 			if (statuses.result) {
@@ -419,6 +421,7 @@ class NinjaBotInit {
 			}
 
 			if (statuses.recentDownload) {
+				console.log('dwl')
 				var rep = this.__processDownload(statuses.recentDownload, slug);
 				bot.sendMessage(chatId, rep);
 			}
