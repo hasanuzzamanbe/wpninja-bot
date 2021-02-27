@@ -324,10 +324,11 @@ class NinjaBotInit {
 
 	subscribe() {
 		schedule.scheduleJob('01 01 08 * * *', () => {
+			console.log('cron-called');
 			firebase
                 .database()
                 .ref('subscriptions')
-                .ref.on("value", snapshot => {
+                .ref.once("value", snapshot => {
 					snapshot.forEach((userSnapshot) =>{
 						this.callloop(userSnapshot);
 					});
@@ -370,7 +371,7 @@ class NinjaBotInit {
 							my += '[ <code>' + data.key + '</code> ]\n';
 						}
 					})
-					my += 'Your Notification will deliver everyday at 8 am.'
+					my += 'Your Notification will deliver everyday morning.'
 					if (count) {
 						bot.sendMessage(chatId, my, { parse_mode: "HTML" });
 					} else {
