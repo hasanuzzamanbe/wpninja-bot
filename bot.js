@@ -343,7 +343,7 @@ class NinjaBotInit {
 		rule.tz = 'Asia/Dacca';
 		// runs at 15:00:00
 		rule.second = 0;
-		rule.minute = 36;
+		rule.minute = 55;
 		rule.hour = 14;
 
 		console.log('subscription registered');
