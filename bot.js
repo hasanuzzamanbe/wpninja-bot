@@ -329,7 +329,7 @@ class NinjaBotInit {
 		// runs at 15:00:00
 		rule.second = 0;
 		rule.minute = 0;
-		rule.hour = 08;
+		rule.hour = 8;
 
 		console.log('subscription registered');
 		schedule.scheduleJob(rule, () => {
