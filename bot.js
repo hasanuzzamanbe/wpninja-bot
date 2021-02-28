@@ -10,6 +10,7 @@ const Bot = require('./Bot/Api');
 const Chat = require('./Chat/Chat');
 const Buttons = require('./Buttons/Buttons')
 const schedule = require('node-schedule');
+var rule = new schedule.RecurrenceRule();
 const WPApiGet = new Bot();
 var firebase = require('firebase');
 
@@ -320,15 +321,39 @@ class NinjaBotInit {
 				{parse_mode: "HTML"}
 			);
 		});
+
+		bot.onText(/\/test-subscriptions/, (msg) => {
+			console.log('test-called');
+			firebase
+                .database()
+                .ref('test')
+                .ref.once("value", snapshot => {
+					console.log(snapshot.val(),'all subscribers from fireB')
+					snapshot.forEach((userSnapshot) =>{
+						this.callloop(userSnapshot);
+					});
+				});
+		});
 	}
 
+
+
 	subscribe() {
-		schedule.scheduleJob('01 01 08 * * *', () => {
+		// your timezone
+		rule.tz = 'Asia/Dacca';
+		// runs at 15:00:00
+		rule.second = 0;
+		rule.minute = 36;
+		rule.hour = 14;
+
+		console.log('subscription registered');
+		schedule.scheduleJob(rule, () => {
 			console.log('cron-called');
 			firebase
                 .database()
-                .ref('subscriptions')
+                .ref('test')
                 .ref.once("value", snapshot => {
+					console.log(snapshot.val(),'all subscribers from fireB')
 					snapshot.forEach((userSnapshot) =>{
 						this.callloop(userSnapshot);
 					});
@@ -341,7 +366,7 @@ class NinjaBotInit {
 			var result = await WPApiGet.status(msg, match[1]);
 			if (result.status !== 404) {
 				var temp = this.__processStatus(result);
-				let path = 'subscriptions/' + match[1] + '/' + chatId;
+				let path = 'test/' + match[1] + '/' + chatId;
 				firebase.database().ref(path).set(chatId, function(error) {
 					if (error) {
 						bot.sendMessage(chatId, "No subscribed, please try again later");
@@ -362,7 +387,7 @@ class NinjaBotInit {
 			let count = 0;
 			firebase
                 .database()
-                .ref('subscriptions')
+                .ref('test')
                 .once("value", snapshot => {
 					var my = 'You have subscribed:\n';
 					snapshot.forEach(data=> {
@@ -386,7 +411,7 @@ class NinjaBotInit {
 			let path = chatId.toString();
 			firebase
                 .database()
-                .ref('subscriptions')
+                .ref('test')
                 .once("value", snapshot => {
 					snapshot.forEach(data=> {
 						if (data.val()[path]) {
@@ -409,11 +434,16 @@ class NinjaBotInit {
 	}
 
 	async callloop(userSnapshot) {
+		console.log('in-call loop');
 		let slug = userSnapshot.key; //fluentform
+		console.log(slug, 'query and process')
 		let user = userSnapshot.val();
 		var statuses = await this.__getStatus(chatId, slug);
+
+		console.log('data get for slug')
 		for (let key in user) {
 			var chatId = parseInt(user[key]);
+			console.log(chatId, 'sender')
 			if (statuses.result) {
 				var template = this.__processStatus(statuses.result);
 				bot.sendMessage(chatId, template, { parse_mode: "HTML" });

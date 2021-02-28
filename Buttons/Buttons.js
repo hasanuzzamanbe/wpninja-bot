@@ -93,6 +93,7 @@ class Buttons {
                 reply_markup: JSON.stringify({
                     keyboard: [
 						['/home 🏠'],
+                        ['/test-subscriptions'],
 						['/alert fluentform', '/unsubscribe'],
                         ['/alert ninja-tables', '/subscriptions'],
                         ['/alert fluent-smtp', '/help'],
@@ -120,7 +121,7 @@ class Buttons {
                             { text: '📈 Growth', callback_data: 'get_chart' },
                             { text: '🆘 Help', callback_data: 'get_help' }
 						],
-						[{ text: '🔔 Notifications', callback_data: 'get_notify' }]
+						[{ text: '🔔 Notifications', callback_data: 'get_notify' },]
 					]
 				}),
                 parse_mode: "HTML"
