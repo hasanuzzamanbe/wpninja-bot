@@ -428,9 +428,9 @@ class NinjaBotInit {
 				bot.sendMessage(chatId, template, { parse_mode: "HTML" });
 			}
 
-			if (statuses.recentDownload) {
-				var rep = this.__processDownload(statuses.recentDownload, slug);
-				bot.sendMessage(chatId, rep);
+			if (statuses.download) {
+				var rep = this.__processDownload(statuses.download, slug);
+				bot.sendMessage(chatId, rep, { parse_mode: "HTML" });
 			}
 
 		}
