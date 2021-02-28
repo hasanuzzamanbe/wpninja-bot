@@ -10,6 +10,7 @@ const Bot = require('./Bot/Api');
 const Chat = require('./Chat/Chat');
 const Buttons = require('./Buttons/Buttons')
 const schedule = require('node-schedule');
+var rule = new schedule.RecurrenceRule();
 const WPApiGet = new Bot();
 var firebase = require('firebase');
 
@@ -323,7 +324,15 @@ class NinjaBotInit {
 	}
 
 	subscribe() {
-		schedule.scheduleJob('01 01 08 * * *', () => {
+
+		rule.tz = 'Asia/Dacca';
+		// runs at 15:00:00
+		rule.second = 0;
+		rule.minute = 0;
+		rule.hour = 08;
+
+		console.log('subscription registered');
+		schedule.scheduleJob(rule, () => {
 			console.log('cron-called');
 			firebase
                 .database()
