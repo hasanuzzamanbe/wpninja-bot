@@ -10,8 +10,8 @@ class Chat {
 			case 'shamim0902':
 				txt = `Hey ${this.user.chat.first_name} 😄\nThanks for developing me,But it's very weird to hear nasty things from people 🤨`;
 				break;
-            default:
-                txt = `Hey ${this.user.chat.first_name} 😄\nHappy to hear from you! But I am not trained enough. And I can only follow some available commands.🤗`
+			default:
+				txt = `Hey ${this.user.chat.first_name} 😄\nHappy to hear from you! But I am not trained enough. And I can only follow some available commands.🤗`;
 		}
 		return txt;
 	}
