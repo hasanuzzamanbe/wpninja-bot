@@ -52,7 +52,7 @@ class NinjaBotInit {
 
 		bot.on("callback_query", (res) => {
 			const Button = new Buttons(res.message.chat);
-			var docs = null;
+			var docs = false;
 			const chatId = res.message.chat.id;
 
 			if (res.data === "status_check") {
@@ -67,8 +67,9 @@ class NinjaBotInit {
 				docs = Button.notifyOptions()
 			} else if (res.data === "get_chart") {
 				docs = Button.chartOptions()
+			} else if (res.data === 'on_fetch_dwn') {
+				this.getDownloadData(chatId, res.message.text);
 			}
-
 			if (docs) {
 				bot.answerCallbackQuery(res.id)
 					.then(() => bot.sendMessage(chatId, docs.msg, docs.markup));
@@ -76,26 +77,29 @@ class NinjaBotInit {
 		});
 	}
 
+	async getDownloadData(chatId, slug, msg = {}) {
+		bot.sendMessage(chatId, `<i>Fetching download status of ${slug}...</i>`, { parse_mode: "HTML" });
+		try {
+			const result = await WPApiGet.downloads(msg, slug, 15);
+			let rep = "Last 15 day's downloads\n-------------------\n";
+			for (let prop in result) {
+				rep += `<code>${prop} : ${result[prop]}</code>\n`;
+			}
+			rep += '-------------------\n'
+			bot.sendMessage(chatId, `===[<b><i>${slug}</i></b>]===\n${rep}` , { parse_mode: "HTML" });
+		} catch (err) {
+			bot.sendMessage(chatId, 'Oops! Please try another.');
+		}
+	}
+
 	wpQueryRegister() {
 		/*
 		* download query
 		*/
-		 bot.onText(/\/dl (.+)/, async function(msg, match) {
+		 bot.onText(/\/dl (.+)/, async (msg, match) => {
 			const chatId = msg.chat.id;
 			const slug = match[1];
-			bot.sendMessage(chatId, `<i>Fetching download status of ${match[1]}...</i>`, { parse_mode: "HTML" });
-
-			try {
-				const result = await WPApiGet.downloads(msg, slug, 15);
-				let rep = "Last 15 day's downloads\n-------------------\n";
-				for (let prop in result) {
-					rep += `<code>${prop} : ${result[prop]}</code>\n`;
-				}
-				rep += '-------------------\n'
-				bot.sendMessage(chatId, `===[<b><i>${slug}</i></b>]===\n${rep}` , { parse_mode: "HTML" });
-			} catch (err) {
-				bot.sendMessage(chatId, 'Oops! Please try another.');
-			}
+			this.getDownloadData(chatId, slug, msg);
 		});
 
 		/*
@@ -139,7 +143,7 @@ class NinjaBotInit {
 				bot.sendPhoto(chatId, image);
 			} catch (err) {
 				console.log(err, 'err from draw chart');
-				bot.sendMessage(chatId, 'Oops! Plugin not found.💔\nPlease try another.');
+				bot.sendMessage(chatId, 'Oops! Sorry chart render not possible!.💔\nWe will fix it soon.');
 			}
 		});
 		/*
@@ -323,11 +327,21 @@ class NinjaBotInit {
 	}
 
 	subscribe() {
-		schedule.scheduleJob('01 57 08 * * *', () => {
-			console.log('cr called')
+		//subscription-test
+		// bot.onText(/\/subtest/, (msg) => {
+		// 	firebase
+		// 		.database()
+		// 		.ref('test')
+		// 		.ref.once("value", snapshot => {
+		// 			snapshot.forEach((userSnapshot) =>{
+		// 				this.callloop(userSnapshot);
+		// 			});
+		// 		});
+		// });
+		schedule.scheduleJob('01 00 10 * * *', () => {
 			firebase
                 .database()
-                .ref('test')
+                .ref('subscriptions')
                 .ref.once("value", snapshot => {
 					snapshot.forEach((userSnapshot) =>{
 						this.callloop(userSnapshot);
@@ -371,7 +385,7 @@ class NinjaBotInit {
 							my += '[ <code>' + data.key + '</code> ]\n';
 						}
 					})
-					my += 'Your Notification will deliver everyday at 8 am.'
+					my += 'Your Notification will deliver everyday at 10 am. (GMT +6)'
 					if (count) {
 						bot.sendMessage(chatId, my, { parse_mode: "HTML" });
 					} else {
@@ -412,7 +426,6 @@ class NinjaBotInit {
 		let slug = userSnapshot.key; //fluentform
 		let user = userSnapshot.val();
 		var statuses = await this.__getStatus(chatId, slug);
-		console.log(statuses,'on st')
 		for (let key in user) {
 			var chatId = parseInt(user[key]);
 			if (statuses.result) {
@@ -420,10 +433,19 @@ class NinjaBotInit {
 				bot.sendMessage(chatId, template, { parse_mode: "HTML" });
 			}
 
-			if (statuses.recentDownload) {
-				console.log('dwl')
-				var rep = this.__processDownload(statuses.recentDownload, slug);
-				bot.sendMessage(chatId, rep);
+			if (statuses.download) {
+				var rep = this.__processDownload(statuses.download, slug);
+				bot.sendMessage(chatId, rep, { parse_mode: "HTML" });
+				bot.sendMessage(chatId, slug, {
+					parse_mode: "HTML",
+					reply_markup: {
+						inline_keyboard: [
+							[{
+							text: 'View Last 15 Days ⬇️',
+							callback_data: 'on_fetch_dwn'
+						}]
+					]
+				}});
 			}
 
 		}
