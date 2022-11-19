@@ -60,7 +60,7 @@ class Buttons {
                 }),
                 parse_mode: "HTML"
             },
-            msg: "Type <code><b>/ch your-plugin-slug</b></code>\nTo get active growth chart, Some popular plugins are showing bellow menu as suggestion 👇"
+            msg: "Type <code><b>/ch your-plugin-slug</b></code>\nTo get download chart, Some popular plugins are showing bellow menu as suggestion 👇"
         };
         return opts;
     }

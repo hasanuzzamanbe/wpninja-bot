@@ -1,6 +1,7 @@
 process.env['NTBA_FIX_319'] = 1;
 process.env["NTBA_FIX_350"] = 1;
 require('dotenv').config({ silent: true });
+const fetch = require('node-fetch');
 var TelegramBot = require('node-telegram-bot-api');
 var opt = { polling: true };
 var bot = new TelegramBot(process.env.TOKEN, opt);
@@ -10,6 +11,14 @@ const Bot = require('./Bot/Api');
 const Chat = require('./Chat/Chat');
 const Buttons = require('./Buttons/Buttons')
 const schedule = require('node-schedule');
+
+
+let rule = new schedule.RecurrenceRule();
+rule.tz = 'Asia/Dhaka';
+rule.second = 0;
+rule.minute = 54;
+rule.hour = 21;
+
 const WPApiGet = new Bot();
 var firebase = require('firebase');
 
@@ -116,20 +125,20 @@ class NinjaBotInit {
 				var formatted = dataArr.map((key) => {
 					return ([key[0], parseFloat(key[1])]);
 				})
-				formatted.unshift(['Date', 'Growth']);
+				formatted.unshift(['Date', 'Downloads']);
 				const drawChart = `
 					const myChart = google.visualization.arrayToDataTable(
 							${JSON.stringify(formatted)}
 						);
 					const options = {
-						title: 'Active Installation Growth chart of ${match[1]}',
+						title: 'Download chart of ${match[1]}',
 						chartArea: {width: '50%'},
 						hAxis: {
 							title: 'Date',
 							minValue: 0
 						},
 						vAxis: {
-							title: 'Active Growth %'
+							title: 'Downloads'
 						}
 					};
 
@@ -159,6 +168,16 @@ class NinjaBotInit {
 				var template = this.__processStatus(statuses.result);
 				var rep = this.__processDownload(statuses.download, slug);
 				bot.sendMessage(chatId, template + '\n\n' + rep, { parse_mode: "HTML" });
+				bot.sendMessage(chatId, slug, {
+					parse_mode: "HTML",
+					reply_markup: {
+						inline_keyboard: [
+							[{
+							text: 'View Last 15 Days ⬇️',
+							callback_data: 'on_fetch_dwn'
+						}]
+					]
+				}});
 			} else {
 				bot.sendMessage(chatId, '🚫 Warning:' + statuses.result.statusText + '\nPlease choose a correct slug');
 			}
@@ -328,20 +347,28 @@ class NinjaBotInit {
 
 	subscribe() {
 		//subscription-test
-		// bot.onText(/\/subtest/, (msg) => {
-		// 	firebase
-		// 		.database()
-		// 		.ref('test')
-		// 		.ref.once("value", snapshot => {
-		// 			snapshot.forEach((userSnapshot) =>{
-		// 				this.callloop(userSnapshot);
-		// 			});
-		// 		});
-		// });
-		schedule.scheduleJob('01 00 10 * * *', () => {
+		bot.onText(/\/subtest/, (msg) => {
+			firebase
+				.database()
+				.ref('test')
+				.ref.once("value", snapshot => {
+					snapshot.forEach((userSnapshot) =>{
+						this.callloop(userSnapshot);
+					});
+				});
+		});
+		schedule.scheduleJob("0 0 */2 * * *", function() { // this for two hour
+			try {
+				fetch('https://wpminers.com/wpninja-bot/')
+			} catch (err) {
+				console.log(err)
+			}
+		});
+
+		schedule.scheduleJob(rule, () => {
 			firebase
                 .database()
-                .ref('subscriptions')
+                .ref('test')
                 .ref.once("value", snapshot => {
 					snapshot.forEach((userSnapshot) =>{
 						this.callloop(userSnapshot);

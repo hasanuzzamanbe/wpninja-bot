@@ -24,7 +24,8 @@ class Api {
 
     async activeChart(chatId, slug) {
         try {
-            var api = `${this.endpoint}active-installs.php?slug=${slug}&limit=210`;
+            //https://api.wordpress.org/stats/plugin/1.0/downloads.php?slug=fluentform&limit=50
+            var api = `${this.endpoint}downloads.php?slug=${slug}&limit=210`;
             let sendMessage = await fetch(api)
             if (sendMessage.status == 400) {
                 return {
