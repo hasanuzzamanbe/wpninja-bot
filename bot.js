@@ -1,6 +1,7 @@
 process.env['NTBA_FIX_319'] = 1;
 process.env["NTBA_FIX_350"] = 1;
 require('dotenv').config({ silent: true });
+const fetch = require('node-fetch');
 var TelegramBot = require('node-telegram-bot-api');
 var opt = { polling: true };
 var bot = new TelegramBot(process.env.TOKEN, opt);
@@ -10,7 +11,14 @@ const Bot = require('./Bot/Api');
 const Chat = require('./Chat/Chat');
 const Buttons = require('./Buttons/Buttons')
 const schedule = require('node-schedule');
-var rule = new schedule.RecurrenceRule();
+
+
+let rule = new schedule.RecurrenceRule();
+rule.tz = 'Asia/Dhaka';
+rule.second = 0;
+rule.minute = 01;
+rule.hour = 10;
+
 const WPApiGet = new Bot();
 var firebase = require('firebase');
 
@@ -53,7 +61,7 @@ class NinjaBotInit {
 
 		bot.on("callback_query", (res) => {
 			const Button = new Buttons(res.message.chat);
-			var docs = null;
+			var docs = false;
 			const chatId = res.message.chat.id;
 
 			if (res.data === "status_check") {
@@ -68,8 +76,9 @@ class NinjaBotInit {
 				docs = Button.notifyOptions()
 			} else if (res.data === "get_chart") {
 				docs = Button.chartOptions()
+			} else if (res.data === 'on_fetch_dwn') {
+				this.getDownloadData(chatId, res.message.text);
 			}
-
 			if (docs) {
 				bot.answerCallbackQuery(res.id)
 					.then(() => bot.sendMessage(chatId, docs.msg, docs.markup));
@@ -77,26 +86,29 @@ class NinjaBotInit {
 		});
 	}
 
+	async getDownloadData(chatId, slug, msg = {}) {
+		bot.sendMessage(chatId, `<i>Fetching download status of ${slug}...</i>`, { parse_mode: "HTML" });
+		try {
+			const result = await WPApiGet.downloads(msg, slug, 15);
+			let rep = "Last 15 day's downloads\n-------------------\n";
+			for (let prop in result) {
+				rep += `<code>${prop} : ${result[prop]}</code>\n`;
+			}
+			rep += '-------------------\n'
+			bot.sendMessage(chatId, `===[<b><i>${slug}</i></b>]===\n${rep}` , { parse_mode: "HTML" });
+		} catch (err) {
+			bot.sendMessage(chatId, 'Oops! Please try another.');
+		}
+	}
+
 	wpQueryRegister() {
 		/*
 		* download query
 		*/
-		 bot.onText(/\/dl (.+)/, async function(msg, match) {
+		 bot.onText(/\/dl (.+)/, async (msg, match) => {
 			const chatId = msg.chat.id;
 			const slug = match[1];
-			bot.sendMessage(chatId, `<i>Fetching download status of ${match[1]}...</i>`, { parse_mode: "HTML" });
-
-			try {
-				const result = await WPApiGet.downloads(msg, slug, 15);
-				let rep = "Last 15 day's downloads\n-------------------\n";
-				for (let prop in result) {
-					rep += `<code>${prop} : ${result[prop]}</code>\n`;
-				}
-				rep += '-------------------\n'
-				bot.sendMessage(chatId, `===[<b><i>${slug}</i></b>]===\n${rep}` , { parse_mode: "HTML" });
-			} catch (err) {
-				bot.sendMessage(chatId, 'Oops! Please try another.');
-			}
+			this.getDownloadData(chatId, slug, msg);
 		});
 
 		/*
@@ -113,20 +125,20 @@ class NinjaBotInit {
 				var formatted = dataArr.map((key) => {
 					return ([key[0], parseFloat(key[1])]);
 				})
-				formatted.unshift(['Date', 'Growth']);
+				formatted.unshift(['Date', 'Downloads']);
 				const drawChart = `
 					const myChart = google.visualization.arrayToDataTable(
 							${JSON.stringify(formatted)}
 						);
 					const options = {
-						title: 'Active Installation Growth chart of ${match[1]}',
+						title: 'Download chart of ${match[1]}',
 						chartArea: {width: '50%'},
 						hAxis: {
 							title: 'Date',
 							minValue: 0
 						},
 						vAxis: {
-							title: 'Active Growth %'
+							title: 'Downloads'
 						}
 					};
 
@@ -140,7 +152,7 @@ class NinjaBotInit {
 				bot.sendPhoto(chatId, image);
 			} catch (err) {
 				console.log(err, 'err from draw chart');
-				bot.sendMessage(chatId, 'Oops! Plugin not found.💔\nPlease try another.');
+				bot.sendMessage(chatId, 'Oops! Sorry chart render not possible!.💔\nWe will fix it soon.');
 			}
 		});
 		/*
@@ -156,6 +168,16 @@ class NinjaBotInit {
 				var template = this.__processStatus(statuses.result);
 				var rep = this.__processDownload(statuses.download, slug);
 				bot.sendMessage(chatId, template + '\n\n' + rep, { parse_mode: "HTML" });
+				bot.sendMessage(chatId, slug, {
+					parse_mode: "HTML",
+					reply_markup: {
+						inline_keyboard: [
+							[{
+							text: 'View Last 15 Days ⬇️',
+							callback_data: 'on_fetch_dwn'
+						}]
+					]
+				}});
 			} else {
 				bot.sendMessage(chatId, '🚫 Warning:' + statuses.result.statusText + '\nPlease choose a correct slug');
 			}
@@ -251,17 +273,65 @@ class NinjaBotInit {
 				} else if (makeInsensitive.includes('dev') || makeInsensitive.includes('creator')) {
 					bot.sendMessage(msg.chat.id, 'Created by Hasanuzzaman (@shamim0902)\nFor more visit 🌎 www.hasanuzzaman.com');
 				} else {
-					const ChatInstance = new Chat(msg);
-					let txt = ChatInstance.getMessage();
-					let opt = (new Buttons(msg.chat)).helpOptions().markup;
-					bot.sendMessage(
-						msg.chat.id,
-						txt,
+					this.getChatApi(
+						msg,
+						msg.text,
 						opt
-					)
+					);
 				}
 			}
 		});
+	}
+
+	serializeUrl(obj) {
+		var str = "";
+		for (var key in obj) {
+			if (str != "") {
+				str += "&";
+			}
+			str += key + "=" + encodeURIComponent(obj[key]);
+		}
+		return str;
+	}
+
+	getChatApi(msg, txt, opt) {
+		let id = msg.chat.id;
+		let data = {
+			user_id: msg.from.first_name,
+			message: txt,
+			to_name: msg.from.first_name,
+			from_name: 'Boy'
+		};
+
+		const options = {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/json',
+				'X-RapidAPI-Key': process.env.CHATAPI,
+				'X-RapidAPI-Host': process.env.CHATHOST
+			},
+			body: JSON.stringify(data)
+		};
+
+		let endpoints = 'https://waifu.p.rapidapi.com/v1/waifu';
+		fetch(endpoints, 
+			options
+		)
+			.then(response => response.json())
+			.then(res => {
+				bot.sendMessage(
+					id,
+					res.response,
+					opt
+				)
+			})
+			.catch(err => {
+				bot.sendMessage(
+					id,
+					'I\'m completely exhausted! 🥱 So sad for BOT life! I want to start a chicken farm 🐥 and get away from this BOT existence. 🤢',
+					opt
+				)
+			});
 	}
 
 	otherActions() {
@@ -324,19 +394,25 @@ class NinjaBotInit {
 	}
 
 	subscribe() {
+		//subscription-test
+		bot.onText(/\/subtest/, (msg) => {
+			firebase
+				.database()
+				.ref('test')
+				.ref.once("value", snapshot => {
+					snapshot.forEach((userSnapshot) =>{
+						this.callloop(userSnapshot);
+					});
+				});
+		});
 
-		rule.tz = 'Asia/Dacca';
-		// runs at 15:00:00
-		rule.second = 0;
-		rule.minute = 0;
-		rule.hour = 8;
+		// Add this curl to cronjob of cpanel to active application pinging
+		// curl -s "https://wpminers.com/wpninja-bot/" >/dev/null
 
-		console.log('subscription registered');
 		schedule.scheduleJob(rule, () => {
-			console.log('cron-called');
 			firebase
                 .database()
-                .ref('subscriptions')
+                .ref('test')
                 .ref.once("value", snapshot => {
 					snapshot.forEach((userSnapshot) =>{
 						this.callloop(userSnapshot);
@@ -380,7 +456,7 @@ class NinjaBotInit {
 							my += '[ <code>' + data.key + '</code> ]\n';
 						}
 					})
-					my += 'Your Notification will deliver everyday morning.'
+					my += 'Your Notification will deliver everyday at 10 am. (GMT +6)'
 					if (count) {
 						bot.sendMessage(chatId, my, { parse_mode: "HTML" });
 					} else {
@@ -431,6 +507,16 @@ class NinjaBotInit {
 			if (statuses.download) {
 				var rep = this.__processDownload(statuses.download, slug);
 				bot.sendMessage(chatId, rep, { parse_mode: "HTML" });
+				bot.sendMessage(chatId, slug, {
+					parse_mode: "HTML",
+					reply_markup: {
+						inline_keyboard: [
+							[{
+							text: 'View Last 15 Days ⬇️',
+							callback_data: 'on_fetch_dwn'
+						}]
+					]
+				}});
 			}
 
 		}
