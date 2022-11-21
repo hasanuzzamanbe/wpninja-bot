@@ -16,8 +16,8 @@ const schedule = require('node-schedule');
 let rule = new schedule.RecurrenceRule();
 rule.tz = 'Asia/Dhaka';
 rule.second = 0;
-rule.minute = 54;
-rule.hour = 21;
+rule.minute = 01;
+rule.hour = 10;
 
 const WPApiGet = new Bot();
 var firebase = require('firebase');
@@ -273,17 +273,64 @@ class NinjaBotInit {
 				} else if (makeInsensitive.includes('dev') || makeInsensitive.includes('creator')) {
 					bot.sendMessage(msg.chat.id, 'Created by Hasanuzzaman (@shamim0902)\nFor more visit 🌎 www.hasanuzzaman.com');
 				} else {
-					const ChatInstance = new Chat(msg);
-					let txt = ChatInstance.getMessage();
-					let opt = (new Buttons(msg.chat)).helpOptions().markup;
-					bot.sendMessage(
-						msg.chat.id,
-						txt,
+					this.getChatApi(
+						msg,
+						msg.text,
 						opt
-					)
+					);
 				}
 			}
 		});
+	}
+
+	serializeUrl(obj) {
+		var str = "";
+		for (var key in obj) {
+			if (str != "") {
+				str += "&";
+			}
+			str += key + "=" + encodeURIComponent(obj[key]);
+		}
+		return str;
+	}
+
+	getChatApi(msg, txt, opt) {
+		let id = msg.chat.id;
+		let data = {
+			user_id: msg.from.first_name,
+			message: txt,
+			from_name: msg.from.first_name
+		};
+		console.log(msg)
+		const options = {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/json',
+				'X-RapidAPI-Key': process.env.CHATAPI,
+				'X-RapidAPI-Host': process.env.CHATHOST
+			},
+			body: JSON.stringify(data)
+		};
+
+		let endpoints = 'https://waifu.p.rapidapi.com/v1/waifu';
+		fetch(endpoints, 
+			options
+		)
+			.then(response => response.json())
+			.then(res => {
+				bot.sendMessage(
+					id,
+					res.response,
+					opt
+				)
+			})
+			.catch(err => {
+				bot.sendMessage(
+					id,
+					'I\'m completely exhausted! 🥱 So sad for BOT life! I want to start a chicken farm 🐥 and get away from this BOT existence. 🤢',
+					opt
+				)
+			});
 	}
 
 	otherActions() {
@@ -357,13 +404,9 @@ class NinjaBotInit {
 					});
 				});
 		});
-		schedule.scheduleJob("0 0 */2 * * *", function() { // this for two hour
-			try {
-				fetch('https://wpminers.com/wpninja-bot/')
-			} catch (err) {
-				console.log(err)
-			}
-		});
+
+		// Add this curl to cronjob of cpanel to active application pinging
+		// curl -s "https://wpminers.com/wpninja-bot/" >/dev/null
 
 		schedule.scheduleJob(rule, () => {
 			firebase
