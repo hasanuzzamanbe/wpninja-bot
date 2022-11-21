@@ -299,9 +299,10 @@ class NinjaBotInit {
 		let data = {
 			user_id: msg.from.first_name,
 			message: txt,
-			from_name: msg.from.first_name
+			to_name: msg.from.first_name,
+			from_name: 'Boy'
 		};
-		console.log(msg)
+
 		const options = {
 			method: 'POST',
 			headers: {
