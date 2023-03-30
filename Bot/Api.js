@@ -1,4 +1,7 @@
 const fetch = require('node-fetch');
+
+//Follow the wordpress api docs from here
+//https://codex.wordpress.org/WordPress.org_API
 class Api {
     constructor() {
         this.endpoint = 'https://api.wordpress.org/stats/plugin/1.0/';
